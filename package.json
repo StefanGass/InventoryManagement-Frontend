@@ -1,0 +1,40 @@
+{
+    "name": "inventory-management-frontend",
+    "author": "Stefan Gass & Isabella Zaby",
+    "license": "MIT",
+    "version": "1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev -p 3004",
+        "build": "next build",
+        "buildtest": "NODE_ENV=${NODE_ENV:=test} next build",
+        "start": "next start -p 3004",
+        "type-check": "tsc"
+    },
+    "dependencies": {
+        "@emotion/cache": "^11.7.1",
+        "@emotion/react": "^11.9.0",
+        "@emotion/server": "^11.4.0",
+        "@emotion/styled": "^11.8.1",
+        "@mui/icons-material": "^5.6.1",
+        "@mui/material": "^5.7.0",
+        "@mui/x-data-grid": "^5.8.0",
+        "@mui/x-date-pickers": "^5.0.0-alpha.6",
+        "base-64": "^1.0.0",
+        "date-fns": "^2.28.0",
+        "next": "^12.1.4",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "sharp": "^0.30.3"
+    },
+    "devDependencies": {
+        "@mui/types": "^7.1.3",
+        "@types/node": "^17.0.23",
+        "@types/react": "^17.0.44",
+        "@types/react-dom": "^17.0.15",
+        "prettier": "2.6.2",
+        "sass": "^1.52.3",
+        "tslib": "^2.4.0",
+        "typescript": "^4.6.3"
+    }
+}

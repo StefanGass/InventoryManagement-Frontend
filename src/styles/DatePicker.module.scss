@@ -1,0 +1,19 @@
+.cancel {
+    position: absolute;
+    top: 35%;
+    right: 20px;
+    z-index: 100;
+    opacity: 0.6;
+
+    &:hover {
+        cursor: pointer;
+        color: black;
+        background-color: #eeeeee;
+        border-radius: 50%;
+        display: inline-block;
+    }
+}
+
+.wrapper {
+    position: relative;
+}

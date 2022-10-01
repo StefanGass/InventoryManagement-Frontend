@@ -1,0 +1,53 @@
+.image {
+    width: 300px;
+    height: 300px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    border-radius: 10px;
+    margin-bottom: 10px;
+
+    img {
+        max-width: 300px;
+        max-height: 300px;
+        object-fit: contain;
+        padding: 5px;
+    }
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.thumbnail {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #bdbdbd;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    border-radius: 10px;
+    opacity: 40%;
+
+    img {
+        max-width: 100px;
+        max-height: 100px;
+        object-fit: contain;
+        padding: 3px;
+    }
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    &.active {
+        border: 1px solid black;
+        opacity: 100%;
+    }
+}
+
+.thumbnailcontainer {
+    display: flex;
+    flex-flow: row wrap;
+    width: 300px;
+}

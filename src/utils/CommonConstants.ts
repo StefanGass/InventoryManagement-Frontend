@@ -1,0 +1,7 @@
+export default {
+    IN_STORE: 'LAGERND',
+    ISSUED: 'AUSGEGEBEN',
+    DROPPED: 'AUSGESCHIEDEN',
+    SPREAD: 'VERTEILT',
+    INACTIVE: 'INAKTIV'
+};
