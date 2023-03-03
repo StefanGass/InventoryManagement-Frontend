@@ -2,6 +2,7 @@ export interface IUser {
     id: number;
     firstName: string;
     lastName: string;
+    admin: boolean;
     superAdmin: boolean;
 }
 
@@ -22,6 +23,7 @@ export interface IInventoryItem {
     type?: IType;
     itemInternalNumber?: string;
     itemName: string;
+    oldItemNumber?: string;
     serialNumber: string;
     location?: ILocation;
     pieces?: number;
@@ -54,6 +56,7 @@ export interface IDataTableInventory {
     activeAndNotActiveAndNotDroppedItems: IInventoryItem[];
     activeAndDroppedAndNotDroppedItems: IInventoryItem[];
     allItems: IInventoryItem[];
+    showSwitchSearchBarAndLegend?: boolean;
 }
 
 export interface IType {
@@ -65,6 +68,7 @@ export interface IType {
 export interface ICategory {
     id: number;
     categoryName: string;
+    prefix: string;
 }
 
 export interface ILocation {
@@ -99,11 +103,26 @@ export interface IChange {
     user: string;
     changeDate: Date;
     changeStatus: string;
+    changeHistory: string;
+}
+
+export interface IPrinter {
+    id: number;
+    printerName: string;
+    printerModel: string;
+    printerIp: string;
+    labelFormat: string;
 }
 
 export interface IPictureUpload {
     name: string;
     base64: string | ArrayBuffer;
+}
+
+export interface IReturningOptions {
+    id: number;
+    returningPieces: number;
+    issuedTo: string;
 }
 
 export interface IFormValidation {
@@ -120,10 +139,33 @@ export interface IUserContext {
     setFirstName: (val: string) => void;
     lastName: string;
     setLastName: (val: string) => void;
+    admin: boolean;
+    setAdmin: (val: boolean) => void;
+    superAdmin: boolean;
+    setSuperAdmin: (val: boolean) => void;
+    adminMode: boolean;
+    setAdminMode: (val: boolean) => void;
     departmentId: number;
     setDepartmentId: (val: number) => void;
     departmentName: string;
     setDepartmentName: (val: string) => void;
-    superAdmin: boolean;
-    setSuperAdmin: (val: boolean) => void;
+    themeMode: 'light' | 'dark';
+    setThemeMode: (val: 'light' | 'dark') => void;
+}
+
+export interface IChartItem {
+    id: number;
+    type: IType;
+    department: IDepartment;
+    pieces: number;
+    piecesStored: number;
+    piecesIssued: number;
+    piecesDropped: number;
+    locations: string;
+    departments: string;
+    processingDate: string;
+    piecesCreated: number;
+    piecesManipulated: number;
+    piecesActivated: number;
+    piecesDeactivated: number;
 }

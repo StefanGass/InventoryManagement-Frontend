@@ -1,5 +1,5 @@
-import { GenericObject, ICategory, ILocation, IObjectToSend, ISupplier, IType } from 'components/interfaces';
-import { FC, MouseEvent, useEffect, useState } from 'react';
+import { GenericObject, ICategory, ILocation, IObjectToSend, IPrinter, ISupplier, IType } from 'components/interfaces';
+import { FC, MouseEvent, useContext, useEffect, useState } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 import CustomTextField from 'components/form-fields/CustomTextField';
 import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
@@ -9,11 +9,13 @@ import DataTableCategory from 'components/tables/DataTableCategory';
 import DataTableLocation from 'components/tables/DataTableLocation';
 import DataTableSupplier from 'components/tables/DataTableSupplier';
 import CustomButton from 'components/form-fields/CustomButton';
-import ParameterFormAlert from 'components/alerts/ParameterFormAlert';
+import DataTablePrinter from 'components/tables/DataTablePrinter';
+import { UserContext } from 'pages/_app';
+import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IPropertyForm {
     parameter: number | null;
-    tableList: ICategory[] | IType[] | ISupplier[] | ILocation[];
+    tableList: ICategory[] | IType[] | ISupplier[] | ILocation[] | IPrinter[];
     categoryOptions: ICategory[];
     addSuccessfulAlert: boolean;
     duplicateErrorAlert: boolean;
@@ -24,6 +26,7 @@ interface IPropertyForm {
 
 const ParameterForm: FC<IPropertyForm> = (props) => {
     const { parameter, tableList, onClick, addSuccessfulAlert, duplicateErrorAlert, categoryOptions, setAddedSuccessfulAlert, setDuplicateErrorAlert } = props;
+    const { admin, superAdmin } = useContext(UserContext);
 
     const [valueOne, setValueOne] = useState<string>('');
     const [valueTwo, setValueTwo] = useState<string | GenericObject | null>('');
@@ -42,12 +45,12 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
     }, [parameter]);
 
     useEffect(() => {
-        setValueOneError(false);
-    }, [valueOne]);
-
-    useEffect(() => {
-        setValueTwoError(false);
-    }, [valueTwo]);
+        valueOne && setValueOneError(false);
+        valueTwo && setValueTwoError(false);
+        setAddedSuccessfulAlert(false);
+        setDuplicateErrorAlert(false);
+        valueOne && (valueTwo || !valueTwoError) && setInputEmptyAlert(false);
+    }, [valueOne, valueTwo]);
 
     if (!parameter) {
         return null;
@@ -59,10 +62,10 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
         setDuplicateErrorAlert(false);
         setValueOneError(false);
         setValueTwoError(false);
-        if (valueOne && !(/^\s*$/.test(valueOne))) {
+        if (valueOne && !/^\s*$/.test(valueOne)) {
             const trimmedValueOne = valueOne.trim();
-            let trimmedValueTwo = null;
-            if (parameter === 4 && valueTwo) {
+            let trimmedValueTwo = '';
+            if ((parameter === 2 && valueTwo) || (parameter === 4 && valueTwo) || (parameter === 6 && valueTwo)) {
                 trimmedValueTwo = valueTwo.trim();
             }
             let tableToFetch: string | null;
@@ -74,7 +77,7 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                     break;
                 case 2:
                     tableToFetch = 'category';
-                    objectToSend = { categoryName: trimmedValueOne };
+                    objectToSend = { categoryName: trimmedValueOne, prefix: trimmedValueTwo };
                     break;
                 case 3:
                     tableToFetch = 'location';
@@ -88,14 +91,29 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                     tableToFetch = 'department';
                     objectToSend = { departmentName: trimmedValueOne };
                     break;
+                case 6:
+                    tableToFetch = 'printer';
+                    objectToSend = { printerName: trimmedValueOne, printerIp: trimmedValueTwo };
+                    break;
                 default:
                     tableToFetch = '';
                     break;
             }
-            if (parameter !== 1 || valueTwo) {
-                onClick(e, objectToSend, tableToFetch);
-                setValueOne('');
-                setValueTwo('');
+            if ((parameter !== 1 && parameter !== 2 && parameter !== 6) || valueTwo) {
+                if (parameter === 2 && trimmedValueTwo) {
+                    if (trimmedValueTwo.length >= 2 && trimmedValueTwo.length <= 6 && trimmedValueTwo.match(/^[a-z0-9]+$/i)) {
+                        onClick(e, objectToSend, tableToFetch);
+                        setValueOne('');
+                        setValueTwo('');
+                    } else {
+                        setInputEmptyAlert(true);
+                        setValueTwoError(true);
+                    }
+                } else {
+                    onClick(e, objectToSend, tableToFetch);
+                    setValueOne('');
+                    setValueTwo('');
+                }
             } else {
                 setInputEmptyAlert(true);
                 setValueTwoError(true);
@@ -103,7 +121,7 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
         } else {
             setInputEmptyAlert(true);
             setValueOneError(true);
-            if (parameter === 1 && !valueTwo) {
+            if ((parameter === 1 && !valueTwo) || (parameter === 2 && !valueTwo) || (parameter === 6 && !valueTwo)) {
                 setValueTwoError(true);
             } else {
                 setValueTwoError(false);
@@ -121,6 +139,8 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                 return <DataTableLocation locationList={tableList as ILocation[]} />;
             case 4:
                 return <DataTableSupplier supplierList={tableList as ISupplier[]} />;
+            case 6:
+                return <DataTablePrinter printerList={tableList as IPrinter[]} />;
             default:
                 return null;
         }
@@ -157,6 +177,16 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                         error={valueTwoError}
                     />
                 )}
+                {parameter === 2 && (
+                    <CustomTextField
+                        label="Präfix für Inventarnummer"
+                        value={valueTwo}
+                        setValue={setValueTwo}
+                        error={valueTwoError}
+                        required={true}
+                        helperText={'2-6 Zeichen, keine Sonderzeichen'}
+                    />
+                )}
                 {parameter === 4 && (
                     <CustomTextField
                         label="Link"
@@ -165,14 +195,39 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                         error={valueTwoError}
                     />
                 )}
-                <ParameterFormAlert
-                    addSuccessfulAlert={addSuccessfulAlert}
-                    inputEmptyAlert={inputEmptyAlert}
-                    duplicateErrorAlert={duplicateErrorAlert}
-                />
+                {parameter === 6 && (
+                    <CustomTextField
+                        label="IP-Adresse"
+                        value={valueTwo}
+                        setValue={setValueTwo}
+                        error={valueTwoError}
+                        required={true}
+                        disabled={!admin && !superAdmin}
+                    />
+                )}
+                {addSuccessfulAlert && (
+                    <CustomAlert
+                        state="success"
+                        message="Parameter erfolgreich angelegt!"
+                    />
+                )}
+                {inputEmptyAlert && (
+                    <CustomAlert
+                        state="error"
+                        message="Pflichtfelder beachten!"
+                    />
+                )}
+                {duplicateErrorAlert && (
+                    <CustomAlert
+                        state="error"
+                        message="Parameter existiert bereits!"
+                    />
+                )}
                 <Grid
                     container
+                    direction="row"
                     justifyContent="center"
+                    alignItems="center"
                 >
                     <CustomButton
                         onClick={onButtonClick}
@@ -181,20 +236,22 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                     />
                 </Grid>
             </Grid>
-            <Grid
-                container
-                justifyContent="center"
-            >
-                <Box sx={{ my: 5.5 }} />
-                <Typography
-                    variant="h2"
-                    align="center"
-                    marginTop="1.5em"
+            {parameter !== 5 && (
+                <Grid
+                    container
+                    justifyContent="center"
                 >
-                    Übersicht
-                </Typography>
-                <Box sx={{ my: 3 }} />
-            </Grid>
+                    <Box sx={{ my: 5.5 }} />
+                    <Typography
+                        variant="h2"
+                        align="center"
+                        marginTop="1.5em"
+                    >
+                        Übersicht
+                    </Typography>
+                    <Box sx={{ my: 3 }} />
+                </Grid>
+            )}
             <Grid
                 item
                 height="auto"

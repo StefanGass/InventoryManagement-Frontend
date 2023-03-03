@@ -1,8 +1,6 @@
 import { FC } from 'react';
 import { DataGrid, GridColDef, GridRowId, GridToolbar } from '@mui/x-data-grid';
-import { ThemeProvider } from '@mui/material/styles';
 import { IDepartmentMemberConverted } from 'components/interfaces';
-import { tableTheme } from 'styles/tableTheme';
 
 interface IDataTableUserProps {
     userList: IDepartmentMemberConverted[];
@@ -20,17 +18,17 @@ const columns: GridColDef[] = [
 
 const DataTableCategory: FC<IDataTableUserProps> = (props) => {
     const { userList, selectionModel, setSelectionModel } = props;
+    let sortedUserList = userList.sort((a, b) => (a.name > b.name ? 1 : -1));
 
     return (
-        <ThemeProvider theme={tableTheme}>
+        <div style={sortedUserList.length < 15 ? { height: 'auto' } : { height: 700 }}>
             <DataGrid
-                rows={userList.map((user: IDepartmentMemberConverted) => ({
+                rows={sortedUserList.map((user: IDepartmentMemberConverted) => ({
                     id: user.id,
                     name: user.name,
                     department: user.department
                 }))}
-                autoHeight={true}
-                autoPageSize={true}
+                autoHeight={sortedUserList.length < 15}
                 density="compact"
                 columns={columns}
                 pageSize={50}
@@ -49,7 +47,7 @@ const DataTableCategory: FC<IDataTableUserProps> = (props) => {
                 }}
                 components={{ Toolbar: GridToolbar }}
             />
-        </ThemeProvider>
+        </div>
     );
 };
 

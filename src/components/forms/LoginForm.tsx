@@ -1,15 +1,19 @@
 import { FC, FormEvent, useContext, useState } from 'react';
-import { Alert, Box, Button, Container, Grid, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Container, Grid, TextField, Typography } from '@mui/material';
 import { IDepartment, IUser } from 'components/interfaces';
 import { UserContext } from 'pages/_app';
+import { useRouter } from 'next/router';
+import CustomAlert from 'components/form-fields/CustomAlert';
+
+const base64 = require('base-64');
 
 const LoginForm: FC = () => {
-    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setSuperAdmin, setDepartmentName } = useContext(UserContext);
-
-    const base64 = require('base-64');
+    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setAdmin, setSuperAdmin, setAdminMode, setDepartmentName } =
+        useContext(UserContext);
 
     const [loginError, setLoginError] = useState(false);
     const [serverError, setServerError] = useState(false);
+    const router = useRouter();
 
     const fetchDepartment = (userId) => {
         fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/user/${userId}`, {
@@ -17,11 +21,15 @@ const LoginForm: FC = () => {
         })
             .then((res) => res.json())
             .then((result: IDepartment) => {
-                setDepartmentId(result.id);
-                setDepartmentName(result.departmentName);
-                setLogin(true);
+                if (result.id && result.departmentName) {
+                    setDepartmentId(result.id);
+                    setDepartmentName(result.departmentName);
+                }
             })
-            .catch(() => {
+            .catch((error) => {
+                console.log(error);
+            })
+            .finally(() => {
                 setLogin(true);
             });
     };
@@ -33,6 +41,8 @@ const LoginForm: FC = () => {
         headers.append('Authorization', 'Basic ' + base64.encode(String(data.get('username')) + ':' + String(data.get('password'))));
         // to prevent authentication pop-up window
         headers.append('X-Requested-With', 'XMLHttpRequest');
+        setLoginError(false);
+        setServerError(false);
         fetch(`${process.env.HOSTNAME}/api/usercontrol`, {
             method: 'GET',
             headers: headers
@@ -46,14 +56,21 @@ const LoginForm: FC = () => {
                             setUserId(result.id);
                             setFirstName(result.firstName);
                             setLastName(result.lastName);
+                            setAdmin(result.admin);
                             setSuperAdmin(result.superAdmin);
-                            if (result.superAdmin) {
-                                setLogin(true);
+                            if (result.admin || result.superAdmin) {
+                                setAdminMode(true);
                             } else {
-                                fetchDepartment(result.id);
+                                setAdminMode(false);
+                            }
+                            fetchDepartment(result.id);
+                            if (!router.pathname.includes('[id]')) {
+                                // to force password saving prompt
+                                router.push(router.pathname);
                             }
                         })
-                        .catch(() => {
+                        .catch((error) => {
+                            console.log(error);
                             setServerError(true);
                         });
                 } else {
@@ -61,7 +78,8 @@ const LoginForm: FC = () => {
                     setLoginError(true);
                 }
             })
-            .catch(() => {
+            .catch((error) => {
+                console.log(error);
                 setServerError(true);
             });
     };
@@ -69,99 +87,92 @@ const LoginForm: FC = () => {
     return (
         <Container maxWidth="sm">
             <Box sx={{ my: 12 }}>
-                <Grid>
-                    <Typography
-                        variant="h1"
-                        align="center"
+                <Typography
+                    variant="h1"
+                    align="center"
+                >
+                    Anmelden
+                </Typography>
+                <Grid
+                    container
+                    direction="column"
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                    <Box
+                        component="form"
+                        onSubmit={handleSubmit}
+                        noValidate
+                        sx={{ mt: 1 }}
                     >
-                        Anmelden
-                    </Typography>
-                    {(loginError || serverError) && (
-                        <Grid
-                            container
-                            justifyContent="center"
-                        >
-                            <Stack
-                                sx={{ width: '20em', marginTop: '1em' }}
-                                spacing={2}
-                            >
-                                {loginError ? (
-                                    <Alert severity="error">Zugangsdaten unbekannt!</Alert>
-                                ) : (
-                                    <Alert severity="warning">Serverfehler - bitte kontaktiere die IT!</Alert>
-                                )}
-                            </Stack>
+                        <Grid>
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                style={{
+                                    width: '20em'
+                                }}
+                                id="username"
+                                label="Benutzername"
+                                name="username"
+                                autoComplete="username"
+                                autoFocus
+                                error={loginError}
+                            />
                         </Grid>
-                    )}
-                    <Grid
-                        container
-                        direction="column"
-                        alignItems="center"
-                        justifyContent="center"
-                    >
-                        <Box
-                            component="form"
-                            onSubmit={handleSubmit}
-                            noValidate
-                            sx={{ mt: 1 }}
-                        >
-                            <Grid>
-                                <TextField
-                                    variant="outlined"
-                                    margin="normal"
-                                    required
+                        <Grid>
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                style={{
+                                    width: '20em'
+                                }}
+                                name="password"
+                                label="Passwort"
+                                type="password"
+                                id="password"
+                                autoComplete="current-password"
+                                error={loginError}
+                            />
+                        </Grid>
+                        {loginError && (
+                            <CustomAlert
+                                state="error"
+                                message="Zugangsdaten unbekannt!"
+                            />
+                        )}
+                        {serverError && (
+                            <CustomAlert
+                                state="warning"
+                                message="Serverfehler - bitte kontaktiere die IT!"
+                            />
+                        )}
+                        <Grid>
+                            <Grid
+                                container
+                                direction="column"
+                                alignItems="center"
+                                justifyContent="center"
+                            >
+                                <Button
+                                    type="submit"
                                     fullWidth
                                     style={{
-                                        width: '20em'
+                                        width: '22.5em',
+                                        marginTop: '1em'
                                     }}
-                                    id="username"
-                                    label="Benutzername"
-                                    name="username"
-                                    autoComplete="username"
-                                    autoFocus
-                                    error={loginError}
-                                />
-                            </Grid>
-                            <Grid>
-                                <TextField
-                                    variant="outlined"
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    style={{
-                                        width: '20em'
-                                    }}
-                                    name="password"
-                                    label="Passwort"
-                                    type="password"
-                                    id="password"
-                                    autoComplete="current-password"
-                                    error={loginError}
-                                />
-                            </Grid>
-                            <Grid>
-                                <Grid
-                                    container
-                                    direction="column"
-                                    alignItems="center"
-                                    justifyContent="center"
+                                    variant="contained"
+                                    sx={{ mt: 3, mb: 2 }}
                                 >
-                                    <Button
-                                        type="submit"
-                                        fullWidth
-                                        style={{
-                                            width: '22.5em',
-                                            marginTop: '1em'
-                                        }}
-                                        variant="contained"
-                                        sx={{ mt: 3, mb: 2 }}
-                                    >
-                                        Anmelden
-                                    </Button>
-                                </Grid>
+                                    Anmelden
+                                </Button>
                             </Grid>
-                        </Box>
-                    </Grid>
+                        </Grid>
+                    </Box>
                 </Grid>
             </Box>
         </Container>

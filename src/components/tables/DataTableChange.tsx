@@ -1,37 +1,34 @@
 import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { ThemeProvider } from '@mui/material/styles';
 import { IChange } from 'components/interfaces';
-import { tableTheme } from 'styles/tableTheme';
 import { Container, Typography } from '@mui/material';
+import { Box } from '@mui/system';
 
-interface IDataTableChangesProps {
+interface IDataTableChangeProps {
     changeList: IChange[];
 }
 
 const columns: GridColDef[] = [
-    { field: 'change', headerName: 'Änderung', width: 400 },
-    { field: 'user', headerName: 'Geändert durch', width: 250 },
-    {
-        field: 'date',
-        headerName: 'Änderungsdatum',
-        width: 200
-    }
+    { field: 'change', headerName: 'Änderung', width: 250 },
+    { field: 'user', headerName: 'Geändert durch', width: 200 },
+    { field: 'date', headerName: 'Änderungsdatum', width: 200 },
+    { field: 'changeHistory', headerName: 'Änderungsverlauf', width: 4000 }
 ];
 
-const DataTableChanges: FC<IDataTableChangesProps> = (props) => {
+const DataTableChange: FC<IDataTableChangeProps> = (props) => {
     const { changeList } = props;
 
     return (
-        <ThemeProvider theme={tableTheme}>
-            <Container maxWidth={'md'}>
-                <Typography
-                    variant="h3"
-                    align="center"
-                    gutterBottom
-                >
-                    Änderungsverlauf
-                </Typography>
+        <Container maxWidth={'md'}>
+            <Typography
+                variant="h3"
+                align="center"
+                gutterBottom
+            >
+                Änderungsverlauf
+            </Typography>
+            <Box sx={{ my: 2 }} />
+            <div style={changeList.length < 15 ? { height: 'auto' } : { height: 700 }}>
                 <DataGrid
                     rows={changeList.map((change: IChange) => ({
                         id: change.id,
@@ -47,10 +44,10 @@ const DataTableChanges: FC<IDataTableChangesProps> = (props) => {
                                     minute: '2-digit',
                                     second: '2-digit'
                                 })
-                                .replaceAll('/', '.')}` ?? ''
+                                .replaceAll('/', '.')}` ?? '',
+                        changeHistory: change.changeHistory
                     }))}
-                    autoHeight={true}
-                    autoPageSize={true}
+                    autoHeight={changeList.length < 15}
                     density="compact"
                     columns={columns}
                     pageSize={50}
@@ -58,9 +55,9 @@ const DataTableChanges: FC<IDataTableChangesProps> = (props) => {
                     hideFooterSelectedRowCount
                     components={{ Toolbar: GridToolbar }}
                 />
-            </Container>
-        </ThemeProvider>
+            </div>
+        </Container>
     );
 };
 
-export default DataTableChanges;
+export default DataTableChange;

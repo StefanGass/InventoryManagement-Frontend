@@ -1,8 +1,9 @@
-import { ChangeEvent, FC, useEffect, useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { ChangeEvent, FC, useContext, useEffect, useState } from 'react';
+import { Box, Button, Grid, Typography } from '@mui/material';
 import { Delete, UploadFile } from '@mui/icons-material';
 import { IPicture, IPictureUpload } from 'components/interfaces';
-import { lightGrey, mainBlack } from 'styles/theme';
+import { darkGrey, lightGrey, mainBlack, mainWhite } from 'styles/theme';
+import { UserContext } from 'pages/_app';
 
 interface IImageUploadProps {
     setPictures: (pictures: IPicture[]) => void;
@@ -11,6 +12,7 @@ interface IImageUploadProps {
 
 const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
     const [pictureList, setPictureList] = useState<IPictureUpload[] | null>(null);
+    const { themeMode } = useContext(UserContext);
 
     useEffect(() => {
         const transformedList = pictureList?.map((pic) => {
@@ -47,32 +49,34 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
 
     return (
         <Box sx={{ display: 'flex', flexFlow: 'column wrap', width: '100%', alignItems: 'center' }}>
-            <Button
-                variant="contained"
-                component="label"
-                color="secondary"
-                sx={{
-                    width: '19.35em',
-                    height: '4em',
-                    border: `1px solid ${lightGrey}`,
-                    '&:hover': {
-                        color: `${mainBlack}`,
-                        backgroundColor: 'inherit',
-                        border: `1px solid ${mainBlack}`
-                    }
-                }}
-                disabled={disabled}
-            >
-                <UploadFile />
-                <Typography>&nbsp;&nbsp;Dateien hochladen&nbsp;&nbsp;&nbsp;</Typography>
-                <input
-                    type="file"
-                    hidden
-                    multiple
-                    accept=".jpg, .jpeg, .png, .gif, .bmp, .pdf"
-                    onChange={(changeEvent) => transformPictures(changeEvent)}
-                />
-            </Button>
+            <Grid sx={{ cursor: `${disabled ? 'not-allowed' : 'pointer'}` }}>
+                <Button
+                    variant="contained"
+                    component="label"
+                    color="secondary"
+                    sx={{
+                        width: '19.35em',
+                        height: '4em',
+                        border: `${!disabled ? (themeMode === 'dark' ? '1px solid' + darkGrey : '1px solid' + lightGrey) : null}`,
+                        '&:hover': {
+                            color: `${themeMode === 'dark' ? mainWhite : mainBlack}`,
+                            backgroundColor: 'initial',
+                            border: `1px solid ${themeMode === 'dark' ? mainWhite : mainBlack}`
+                        }
+                    }}
+                    disabled={disabled}
+                >
+                    <UploadFile />
+                    <Typography>&nbsp;&nbsp;Dateien hochladen&nbsp;&nbsp;&nbsp;</Typography>
+                    <input
+                        type="file"
+                        hidden
+                        multiple
+                        accept=".jpg, .jpeg, .png, .gif, .bmp, .pdf"
+                        onChange={(changeEvent) => transformPictures(changeEvent)}
+                    />
+                </Button>
+            </Grid>
             <Box sx={{ marginTop: '10px', width: '17.5em' }}>
                 {pictureList?.map((pic, index) => (
                     <Box

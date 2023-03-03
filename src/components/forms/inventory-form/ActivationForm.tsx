@@ -1,21 +1,20 @@
 import { FC, useContext, useState } from 'react';
 import { IDetailInventoryItem } from 'components/interfaces';
-import { Checkbox, Container, FormControlLabel, Typography } from '@mui/material';
+import { Checkbox, Container, FormControlLabel, Grid, Tooltip, Typography } from '@mui/material';
 import CustomButton from 'components/form-fields/CustomButton';
-import { FlashOff, FlashOn } from '@mui/icons-material';
+import { FlashOff, FlashOn, InfoRounded } from '@mui/icons-material';
 import { UserContext } from 'pages/_app';
 
 interface IActivationFormProps {
     inventoryItem: IDetailInventoryItem;
-    disabled: boolean;
     setActivationMessage: (msg: string) => void;
     setFormError: (msg: string) => void;
     setUpdated: (bool: boolean) => void;
 }
 
-const ActivationForm: FC<IActivationFormProps> = ({ inventoryItem, disabled, setActivationMessage, setFormError, setUpdated }) => {
+const ActivationForm: FC<IActivationFormProps> = ({ inventoryItem, setActivationMessage, setFormError, setUpdated }) => {
     const [deactivateCheck, setDeactivateCheck] = useState(false);
-    const { firstName, lastName } = useContext(UserContext);
+    const { firstName, lastName, admin, superAdmin } = useContext(UserContext);
     const sendDeactivate = () => {
         if (deactivateCheck) {
             fetch(`${process.env.HOSTNAME}/api/inventorymanagement/inventory/${inventoryItem.id}/deactivate`, {
@@ -47,6 +46,7 @@ const ActivationForm: FC<IActivationFormProps> = ({ inventoryItem, disabled, set
             }
         });
     };
+
     return (
         <>
             {inventoryItem?.active && (
@@ -56,7 +56,6 @@ const ActivationForm: FC<IActivationFormProps> = ({ inventoryItem, disabled, set
                             <Checkbox
                                 checked={deactivateCheck}
                                 onChange={(e, checked) => setDeactivateCheck(checked)}
-                                disabled={disabled}
                                 sx={{ marginRight: '-0.5em' }}
                             />
                         }
@@ -78,14 +77,29 @@ const ActivationForm: FC<IActivationFormProps> = ({ inventoryItem, disabled, set
                     />
                 </>
             )}
-            {!inventoryItem?.active && (
-                <CustomButton
-                    onClick={sendReactivate}
-                    label="Reaktivieren"
-                    disabled={disabled}
-                    symbol={<FlashOn />}
-                />
-            )}
+            <Grid
+                container
+                direction="row"
+                justifyContent="center"
+                alignItems="center"
+            >
+                {!inventoryItem?.active && (
+                    <CustomButton
+                        onClick={sendReactivate}
+                        label="Reaktivieren"
+                        disabled={!admin && !superAdmin}
+                        symbol={<FlashOn />}
+                    />
+                )}
+                {!inventoryItem?.active && !admin && !superAdmin && (
+                    <Tooltip
+                        title={'Wenn du den Gegenstand reaktivieren möchtest, musst du dich dazu an einen Admin wenden.'}
+                        sx={{ marginTop: '-1em', marginLeft: '-1.5em', marginRight: '0.5em' }}
+                    >
+                        <InfoRounded color="primary" />
+                    </Tooltip>
+                )}
+            </Grid>
         </>
     );
 };

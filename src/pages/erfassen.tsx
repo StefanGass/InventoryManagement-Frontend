@@ -1,23 +1,24 @@
 import { FC, useContext, useEffect, useState } from 'react';
 import LoadingSpinner from 'components/layout/LoadingSpinner';
-import ServerErrorAlert from 'components/alerts/ServerErrorAlert';
-import { IDepartment, IDetailInventoryItem, ILocation, ISupplier, IType } from 'components/interfaces';
-import InventoryForm from 'components/forms/InventoryForm';
-import { Alert, Box, Container, Stack, Typography } from '@mui/material';
+import { IDepartment, IDetailInventoryItem, ILocation, IPrinter, ISupplier, IType } from 'components/interfaces';
+import InventoryForm from 'components/forms/inventory-form/InventoryForm';
+import { Alert, Box, Container, Stack } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import CustomButton from 'components/form-fields/CustomButton';
 import { UserContext } from 'pages/_app';
+import CustomAlert from 'components/form-fields/CustomAlert';
 
 const Erfassen: FC = () => {
     const [type, setType] = useState<IType[] | JSON | null>(null);
     const [location, setLocation] = useState<ILocation[] | JSON | null>(null);
     const [supplier, setSupplier] = useState<ISupplier[] | JSON | null>(null);
+    const [printer, setPrinter] = useState<IPrinter[] | JSON | null>(null);
     const [department, setDepartment] = useState<IDepartment[] | JSON | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [formError, setFormError] = useState('');
 
-    const { departmentId, departmentName, superAdmin, firstName, lastName } = useContext(UserContext);
+    const { userId, firstName, lastName, admin, superAdmin, departmentId, departmentName } = useContext(UserContext);
 
     const fetchData = async (typeToFetch: string, setMethod: (res: JSON) => void) => {
         await fetch(`${process.env.HOSTNAME}/api/inventorymanagement/${typeToFetch}`, {
@@ -34,7 +35,8 @@ const Erfassen: FC = () => {
         fetchData('type', setType).catch(() => setError(true));
         fetchData('location', setLocation).catch(() => setError(true));
         fetchData('supplier', setSupplier).catch(() => setError(true));
-        if (superAdmin) {
+        fetchData('printer/' + userId, setPrinter).catch((e) => setError(e.message));
+        if (admin || superAdmin) {
             fetchData('department', setDepartment).catch(() => setError(true));
         } else {
             setDepartment([{ id: departmentId, departmentName }]);
@@ -54,8 +56,14 @@ const Erfassen: FC = () => {
         })
             .then((response) => {
                 if (response.ok) {
-                    setInventoryForm({ ...inventoryForm, itemInternalNumber: '' });
-                    setAskAgain(true);
+                    response.json().then((result: IDetailInventoryItem) => {
+                        setInventoryForm({
+                            ...inventoryForm,
+                            id: result.id,
+                            itemInternalNumber: result.itemInternalNumber
+                        });
+                        setAskAgain(true);
+                    });
                 } else {
                     response.json().then((res) => setFormError(res.message));
                 }
@@ -70,7 +78,7 @@ const Erfassen: FC = () => {
             <Container
                 sx={{
                     mt: 12,
-                    mb: 3,
+                    mb: 8,
                     display: 'flex',
                     flexFlow: 'column nowrap',
                     alignItems: 'center'
@@ -80,10 +88,15 @@ const Erfassen: FC = () => {
             </Container>
         );
     } else if (error) {
-        return <ServerErrorAlert />;
+        return (
+            <CustomAlert
+                state="warning"
+                message="Serverfehler - bitte kontaktiere die IT!"
+            />
+        );
     } else if (formError) {
         return (
-            <Container sx={{ mt: 12, mb: 3, display: 'flex', flexFlow: 'column nowrap', alignItems: 'center' }}>
+            <Container sx={{ mt: 12, mb: 8, display: 'flex', flexFlow: 'column nowrap', alignItems: 'center' }}>
                 <Stack
                     sx={{
                         width: '17em',
@@ -103,21 +116,15 @@ const Erfassen: FC = () => {
         );
     } else {
         return (
-            <Container sx={{ mt: 12, mb: 7 }}>
-                <Typography
-                    variant="h1"
-                    align="center"
-                    gutterBottom
-                >
-                    Inventargegenstand erfassen
-                </Typography>
-                <Box sx={{ my: 3 }} />
+            <Container sx={{ mt: 12, mb: 8 }}>
                 <InventoryForm
                     type={type as IType[]}
                     supplier={supplier as ISupplier[]}
                     location={location as ILocation[]}
+                    printer={printer as IPrinter[]}
                     department={department as IDepartment[]}
                     onFormSent={onFormSent}
+                    initialCreation={true}
                 />
                 <Box sx={{ my: 3 }} />
             </Container>

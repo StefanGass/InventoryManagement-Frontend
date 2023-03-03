@@ -1,22 +1,34 @@
 import { FC, useContext, useEffect, useState } from 'react';
-import { Box, Container, Grid, Typography } from '@mui/material';
-import DataTableInventory from 'components/tables/DataTableInventory';
-import { IInventoryItem } from 'components/interfaces';
+import { Box, Container, Grid, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import LoadingSpinner from 'components/layout/LoadingSpinner';
-import ServerErrorAlert from 'components/alerts/ServerErrorAlert';
 import { UserContext } from 'pages/_app';
+import { IChartItem, IInventoryItem } from 'components/interfaces';
+import DataTableInventory from 'components/tables/DataTableInventory';
+import DataTableTypeChart from 'components/tables/DataTableTypeChart';
+import CustomPieChart from 'components/charts/CustomPieChart';
+import CustomMultilineChart from 'components/charts/CustomMultilineChart';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import { Info } from '@mui/icons-material';
+import CustomAlert from 'components/form-fields/CustomAlert';
+import lightTheme from 'styles/theme';
 
 const Index: FC = () => {
-    const { login, departmentId, superAdmin } = useContext(UserContext);
+    const { admin, superAdmin, adminMode, setAdminMode, departmentId } = useContext(UserContext);
+
+    const matchesPhone = useMediaQuery(lightTheme.breakpoints.down('sm'));
 
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState(false);
 
-    const [items, setItems] = useState<IInventoryItem[]>([]);
-    const [activeAndNotDroppedItems] = useState<IInventoryItem[]>([]);
-    const [activeAndNotActiveAndNotDroppedItems] = useState<IInventoryItem[]>([]);
-    const [activeAndDroppedAndNotDroppedItems] = useState<IInventoryItem[]>([]);
-    const [allItems] = useState<IInventoryItem[]>([]);
+    const [activityItems, setActivityItems] = useState<IChartItem[]>([]);
+    const [lastItems, setLastItems] = useState<IInventoryItem[]>([]);
+    const [typeChartItems, setTypeChartItems] = useState<IChartItem[]>([]);
+    const [departmentChartItems, setDepartmentChartItems] = useState<IChartItem[]>([]);
+
+    const [switchDisabled, setSwitchDisabled] = useState(true);
+    const [checkedSwitch, setCheckedSwitch] = useState(adminMode);
 
     const handleError = (error: any) => {
         console.log(error);
@@ -24,58 +36,142 @@ const Index: FC = () => {
         setLoading(false);
     };
 
-    const getRequest = () => {
-        if (login) {
-            fetch(
-                superAdmin
-                    ? `${process.env.HOSTNAME}/api/inventorymanagement/inventory`
-                    : `${process.env.HOSTNAME}/api/inventorymanagement/inventory/department/${departmentId}`,
-                {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            )
-                .then((response) => {
-                    if (response.ok) {
-                        response
-                            .json()
-                            .then((result) => {
-                                for (const item of result) {
-                                    allItems.push(item);
-                                    if (item.active && item.pieces !== item.piecesDropped) {
-                                        activeAndNotDroppedItems.push(item);
-                                        activeAndNotActiveAndNotDroppedItems.push(item);
-                                        activeAndDroppedAndNotDroppedItems.push(item);
-                                    } else if (!item.active) {
-                                        activeAndNotActiveAndNotDroppedItems.push(item);
-                                    } else if (item.pieces === item.piecesDropped) {
-                                        activeAndDroppedAndNotDroppedItems.push(item);
-                                    }
-                                }
-                                setItems(activeAndNotDroppedItems);
-                            })
-                            .catch((error) => {
-                                handleError(error);
-                            });
-                        setLoading(false);
-                    } else {
-                        handleError(response);
-                    }
-                })
-                .catch((error) => {
-                    handleError(error);
-                });
-            setLoading(false);
+    const handleChange = (event: { target: { checked: boolean | ((prevState: boolean) => boolean) } }) => {
+        setCheckedSwitch(event.target.checked);
+        if (adminMode) {
+            setAdminMode(false);
         } else {
-            handleError('Login false...');
+            setAdminMode(true);
         }
     };
+
+    const getRequestDepartmentChart = () => {
+        fetch(`${process.env.HOSTNAME}/api/inventorymanagement/chart/department/`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then((response) => {
+                if (response.ok) {
+                    response
+                        .json()
+                        .then((result) => {
+                            setDepartmentChartItems(result);
+                        })
+                        .catch((error) => {
+                            handleError(error);
+                        });
+                } else {
+                    handleError(response);
+                }
+            })
+            .catch((error) => {
+                handleError(error);
+            });
+    };
+
+    const getRequestTypeChart = () => {
+        fetch(
+            (admin || superAdmin) && adminMode
+                ? `${process.env.HOSTNAME}/api/inventorymanagement/chart/type/`
+                : `${process.env.HOSTNAME}/api/inventorymanagement/chart/type/department/${departmentId}`,
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            }
+        )
+            .then((response) => {
+                if (response.ok) {
+                    response
+                        .json()
+                        .then((result) => {
+                            setTypeChartItems(result);
+                            (admin || superAdmin) && checkedSwitch && getRequestDepartmentChart();
+                        })
+                        .catch((error) => {
+                            handleError(error);
+                        });
+                } else {
+                    handleError(response);
+                }
+            })
+            .catch((error) => {
+                handleError(error);
+            });
+    };
+
+    const getRequestLastItems = () => {
+        fetch(
+            (admin || superAdmin) && checkedSwitch
+                ? `${process.env.HOSTNAME}/api/inventorymanagement/chart/last_items/`
+                : `${process.env.HOSTNAME}/api/inventorymanagement/chart/last_items/department/${departmentId}`,
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            }
+        )
+            .then((response) => {
+                if (response.ok) {
+                    response
+                        .json()
+                        .then((result) => {
+                            setLastItems(result);
+                            getRequestTypeChart();
+                        })
+                        .catch((error) => {
+                            handleError(error);
+                        });
+                } else {
+                    handleError(response);
+                }
+            })
+            .catch((error) => {
+                handleError(error);
+            });
+    };
+
+    const getRequests = () => {
+        fetch(
+            (admin || superAdmin) && checkedSwitch
+                ? `${process.env.HOSTNAME}/api/inventorymanagement/chart/activity/`
+                : `${process.env.HOSTNAME}/api/inventorymanagement/chart/activity/department/${departmentId}`,
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            }
+        )
+            .then((response) => {
+                if (response.ok) {
+                    response
+                        .json()
+                        .then((result) => {
+                            setActivityItems(result);
+                            getRequestLastItems();
+                        })
+                        .catch((error) => {
+                            handleError(error);
+                        });
+                    setLoading(false);
+                } else {
+                    handleError(response);
+                }
+            })
+            .catch((error) => {
+                handleError(error);
+            });
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        if ((admin || superAdmin) && departmentId !== undefined && departmentId !== -1) {
+            setSwitchDisabled(false);
+        }
+    }, []);
 
     useEffect(() => {
         setLoading(true);
         setServerError(false);
-        getRequest();
-    }, []);
+        getRequests();
+    }, [checkedSwitch]);
 
     return (
         <Container maxWidth={false}>
@@ -86,22 +182,122 @@ const Index: FC = () => {
                         align="center"
                         gutterBottom
                     >
-                        Inventarmanagement
+                        Dashboard
+                        <br />
                     </Typography>
                 </Grid>
                 {loading ? (
                     <LoadingSpinner />
                 ) : serverError ? (
-                    <ServerErrorAlert />
-                ) : (
-                    <DataTableInventory
-                        items={items}
-                        setItems={setItems}
-                        activeAndNotDroppedItems={activeAndNotDroppedItems}
-                        activeAndNotActiveAndNotDroppedItems={activeAndNotActiveAndNotDroppedItems}
-                        activeAndDroppedAndNotDroppedItems={activeAndDroppedAndNotDroppedItems}
-                        allItems={allItems}
+                    <CustomAlert
+                        state="warning"
+                        message="Serverfehler - bitte kontaktiere die IT!"
                     />
+                ) : (
+                    <Grid>
+                        {(admin || superAdmin) && (
+                            <Grid
+                                container
+                                width="95%"
+                                margin="auto"
+                                alignItems="center"
+                                justifyContent={matchesPhone ? 'center' : 'left'}
+                                marginBottom={matchesPhone ? '1em' : 0}
+                            >
+                                {switchDisabled && (
+                                    <Tooltip title={'Um die Funktion nutzen zu können musst du dir zunächst eine Abteilung zuweisen!'}>
+                                        <Info
+                                            color="primary"
+                                            sx={{ marginRight: '0.5em' }}
+                                        />
+                                    </Tooltip>
+                                )}
+                                <FormGroup>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={checkedSwitch}
+                                                onChange={handleChange}
+                                                value={checkedSwitch}
+                                                disabled={switchDisabled}
+                                            />
+                                        }
+                                        label={`${checkedSwitch ? 'Admin-Ansicht deaktivieren' : 'Admin-Ansicht aktivieren'}`}
+                                    />
+                                </FormGroup>
+                            </Grid>
+                        )}
+                        <Typography
+                            variant="h2"
+                            align="center"
+                            gutterBottom
+                        >
+                            Aktivität
+                            <br />
+                        </Typography>
+                        <Grid marginRight="40px">
+                            <CustomMultilineChart itemList={activityItems} />
+                        </Grid>
+                        <Box sx={{ my: 4 }} />
+                        <Typography
+                            variant="h2"
+                            align="center"
+                            gutterBottom
+                        >
+                            Letzte Änderungen
+                            <br />
+                        </Typography>
+                        {lastItems.length > 0 ? (
+                            <DataTableInventory
+                                items={lastItems}
+                                setItems={setLastItems}
+                                activeAndNotDroppedItems={lastItems}
+                                activeAndNotActiveAndNotDroppedItems={lastItems}
+                                activeAndDroppedAndNotDroppedItems={lastItems}
+                                allItems={lastItems}
+                                showSwitchSearchBarAndLegend={false}
+                            />
+                        ) : (
+                            <Typography
+                                align="center"
+                                marginBottom="3em"
+                            >
+                                Es wurden noch keine Gegenstände erfasst.
+                            </Typography>
+                        )}
+                        <Box sx={{ my: 4 }} />
+                        <Typography
+                            variant="h2"
+                            align="center"
+                            gutterBottom
+                        >
+                            Stück gesamt / lagernd / ausgegeben / ausgeschieden
+                            <br />
+                        </Typography>
+                        {typeChartItems.length > 0 ? (
+                            <DataTableTypeChart chartItemList={typeChartItems} />
+                        ) : (
+                            <Typography
+                                align="center"
+                                marginBottom="3em"
+                            >
+                                Es wurden noch keine Gegenstände oder Typen erfasst.
+                            </Typography>
+                        )}
+                        {(admin || superAdmin) && checkedSwitch && departmentChartItems.length > 0 && departmentChartItems[0].pieces > 0 && (
+                            <Grid>
+                                <Box sx={{ my: 4 }} />
+                                <Typography
+                                    variant="h2"
+                                    align="center"
+                                    gutterBottom
+                                >
+                                    Stück pro Abteilung
+                                </Typography>
+                                <CustomPieChart itemList={departmentChartItems} />
+                            </Grid>
+                        )}
+                    </Grid>
                 )}
             </Box>
         </Container>

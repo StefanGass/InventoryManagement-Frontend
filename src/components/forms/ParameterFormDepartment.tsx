@@ -5,9 +5,9 @@ import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
 import { Add } from '@mui/icons-material';
 import CustomButton from 'components/form-fields/CustomButton';
 import useIsFirstRender from 'hooks/useIsFirstRender';
-import ParameterFormAddDeleteAlert from 'components/alerts/ParameterFormAddDeleteAlert';
 import useFormValidation from 'hooks/useFormValidation';
-import DepartmentUserTable from 'components/forms/DepartmentUserTable';
+import DepartmentUserTableForm from 'components/forms/DepartmentUserTableForm';
+import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IPropertyFormDepartment {
     userId: number;
@@ -78,7 +78,7 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                         result.map((user) => {
                             userList.push({
                                 id: user.id,
-                                name: user.firstName + ' ' + user.lastName
+                                name: user.lastName + ' ' + user.firstName
                             });
                         });
                         setAllUserList(result);
@@ -101,7 +101,7 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                 if (departmentMember.userId === user.id && form.department) {
                     mergedUserList.push({
                         id: user.id,
-                        name: user.firstName + ' ' + user.lastName,
+                        name: user.lastName + ' ' + user.firstName,
                         department: form.department as IDepartment
                     });
                 }
@@ -169,7 +169,6 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
             justifyContent="center"
         >
             <Grid>
-                <Box sx={{ my: 4 }} />
                 <Typography
                     variant="h2"
                     align="center"
@@ -177,6 +176,7 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                 >
                     Bestehende ändern
                 </Typography>
+                <Typography align="center">(User:innen hinzufügen / enfernen)</Typography>
                 <Box sx={{ my: 2 }} />
                 <Grid
                     container
@@ -196,7 +196,11 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                         container
                         justifyContent="center"
                     >
-                        <Box sx={{ my: 5 }} />
+                        <CustomAlert
+                            state="warning"
+                            message="ACHTUNG: Nach dem Hinzufügen oder Entfernen muss der:die betroffene User:in die Seite neu laden!"
+                        />
+                        <Box sx={{ my: 3 }} />
                         <Typography
                             variant="h2"
                             align="center"
@@ -204,7 +208,7 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                         >
                             Hinzufügen / entfernen
                         </Typography>
-                        <Box sx={{ my: 3 }} />
+                        <Box sx={{ my: 5 }} />
                         <Grid
                             container
                             justifyContent="center"
@@ -217,11 +221,25 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                                 error={formValidation.some((field) => field.error) ?? false}
                             />
                         </Grid>
-                        <ParameterFormAddDeleteAlert
-                            addSuccessfulAlert={addMemberSuccessfulAlert}
-                            inputEmptyAlert={formValidation.some((field) => field.error) ?? false}
-                            duplicateErrorAlert={addMemberDuplicateErrorAlert}
-                        />
+                        {addMemberSuccessfulAlert && (
+                            <CustomAlert
+                                state="success"
+                                message="User:in erfolgreich hinzugefügt!"
+                            />
+                        )}
+                        {formValidation.some((field) => field.error) && (
+                            <CustomAlert
+                                state="error"
+                                message="Mindestens ein:e User:in auswählen!"
+                            />
+                        )}
+                        {addMemberDuplicateErrorAlert && (
+                            <CustomAlert
+                                state="error"
+                                message="Ein:e User:in kann maximal zu einer Abteilung hinzugefügt werden!
+                                Bitte den/die User:in zunächst von der ursprünglichen Abteilung entfernen!"
+                            />
+                        )}
                         <Grid>
                             <CustomButton
                                 onClick={onAddMemberButtonClick}
@@ -230,7 +248,7 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                             />
                         </Grid>
                         <Box sx={{ my: 7 }} />
-                        <DepartmentUserTable
+                        <DepartmentUserTableForm
                             userList={userOptionsList}
                             department={form.department}
                             fetchAndMergeChosenDepartmentWithUserList={fetchAndMergeChosenDepartmentWithUserList}

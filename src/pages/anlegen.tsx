@@ -4,12 +4,12 @@ import CustomSelect from 'components/form-fields/CustomSelect';
 import LoadingSpinner from 'components/layout/LoadingSpinner';
 import { ICategory, IObjectToSend } from 'components/interfaces';
 import ParameterForm from 'components/forms/ParameterForm';
-import ServerErrorAlert from 'components/alerts/ServerErrorAlert';
 import ParameterFormDepartment from 'components/forms/ParameterFormDepartment';
 import { UserContext } from 'pages/_app';
+import CustomAlert from 'components/form-fields/CustomAlert';
 
 const Anlegen: FC = () => {
-    const { login, userId, superAdmin } = useContext(UserContext);
+    const { userId, admin, superAdmin } = useContext(UserContext);
 
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState(false);
@@ -40,36 +40,34 @@ const Anlegen: FC = () => {
                 return 'supplier';
             case 5:
                 return 'department';
+            case 6:
+                return 'printer';
             default:
                 return '';
         }
     };
 
     const getRequest = () => {
-        if (login) {
-            const tableToFetch = getTableToFetch(parameter);
-            fetch(`${process.env.HOSTNAME}/api/inventorymanagement/` + tableToFetch, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }).then((response) => {
-                if (response.ok) {
-                    response
-                        .json()
-                        .then((result) => {
-                            setResultList(result);
-                        })
-                        .catch((error) => {
-                            handleError(error);
-                        });
-                    setLoading(false);
-                } else {
-                    handleError(response);
-                }
-            });
-            setLoading(false);
-        } else {
-            handleError('Login false...');
-        }
+        const tableToFetch = getTableToFetch(parameter);
+        fetch(`${process.env.HOSTNAME}/api/inventorymanagement/` + tableToFetch, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        }).then((response) => {
+            if (response.ok) {
+                response
+                    .json()
+                    .then((result) => {
+                        setResultList(result);
+                    })
+                    .catch((error) => {
+                        handleError(error);
+                    });
+                setLoading(false);
+            } else {
+                handleError(response);
+            }
+        });
+        setLoading(false);
     };
 
     useEffect(() => {
@@ -109,26 +107,22 @@ const Anlegen: FC = () => {
 
     const postRequestClick = (e: MouseEvent<HTMLButtonElement>, objectToSend: IObjectToSend | null, tableToFetch: string) => {
         e.preventDefault();
-        if (login) {
-            setServerError(false);
-            setAddSuccessfulAlert(false);
-            setDuplicateErrorAlert(false);
-            if (tableToFetch && objectToSend) {
-                fetch(`${process.env.HOSTNAME}/api/inventorymanagement/` + tableToFetch, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(objectToSend)
-                }).then((response) => {
-                    if (response.ok) {
-                        setAddSuccessfulAlert(true);
-                        getRequest();
-                    } else {
-                        setDuplicateErrorAlert(true);
-                    }
-                });
-            }
-        } else {
-            handleError('Login false...');
+        setServerError(false);
+        setAddSuccessfulAlert(false);
+        setDuplicateErrorAlert(false);
+        if (tableToFetch && objectToSend) {
+            fetch(`${process.env.HOSTNAME}/api/inventorymanagement/` + tableToFetch, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(objectToSend)
+            }).then((response) => {
+                if (response.ok) {
+                    setAddSuccessfulAlert(true);
+                    getRequest();
+                } else {
+                    setDuplicateErrorAlert(true);
+                }
+            });
         }
     };
 
@@ -151,13 +145,17 @@ const Anlegen: FC = () => {
                         label="Parameter wählen"
                         setValue={setParameter}
                         error={false}
+                        admin={admin}
                         superAdmin={superAdmin}
                     />
                 </Grid>
                 {loading ? (
                     <LoadingSpinner />
                 ) : serverError ? (
-                    <ServerErrorAlert />
+                    <CustomAlert
+                        state="warning"
+                        message="Serverfehler - bitte kontaktiere die IT!"
+                    />
                 ) : (
                     <>
                         <ParameterForm

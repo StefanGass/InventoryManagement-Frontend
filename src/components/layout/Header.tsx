@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import {
@@ -20,30 +20,26 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Link from 'components/layout/Link';
 import { routes } from 'utils/routes';
-import theme, { darkGrey, errorRed, lightGrey, mainWhite } from 'styles/theme';
+import lightTheme, { darkGrey, errorRed, lightGrey, mainWhite } from 'styles/theme';
 import logo from 'public/pictures/logo.png';
-
-interface LoginProps {
-    login: boolean;
-    setLogin: (bool: boolean) => void;
-}
+import { UserContext } from 'pages/_app';
 
 const StyledTypographyDesktop = styled(Typography)({
     fontSize: '1.25em',
-    color: theme.palette.secondary.main,
+    color: lightTheme.palette.secondary.main,
     '&:hover': {
-        color: theme.palette.info.main
+        color: lightTheme.palette.info.main
     },
     marginTop: '2px'
 });
 
 const StyledLogoutButtonDesktop = styled(Button)({
-    color: theme.palette.secondary.main,
+    color: lightTheme.palette.secondary.main,
     '&:hover': {
         background: errorRed,
-        color: theme.palette.info.main
+        color: lightTheme.palette.info.main
     },
-    border: `1px solid ${theme.palette.common.white}`,
+    border: `1px solid ${lightTheme.palette.common.white}`,
     fontSize: '20px',
     width: '7em'
 });
@@ -56,16 +52,41 @@ const StyledIconButtonDrawer = styled(IconButton)({
     }
 });
 
-const Header: FC<LoginProps> = (props) => {
-    const { login, setLogin } = props;
+const Header = () => {
+    const { login, setLogin, setUserId, setFirstName, setLastName, setAdmin, setSuperAdmin, setAdminMode, setDepartmentId, setDepartmentName, themeMode } =
+        useContext(UserContext);
 
     const router = useRouter();
-    const matches = useMediaQuery(theme.breakpoints.down('md'));
+    const matches = useMediaQuery(lightTheme.breakpoints.down('md'));
 
     const logoutClick = () => {
         setOpenDrawer(false);
         if (setLogin) {
             setLogin(false);
+        }
+        if (setUserId) {
+            setUserId(-1);
+        }
+        if (setFirstName) {
+            setFirstName('');
+        }
+        if (setLastName) {
+            setLastName('');
+        }
+        if (setAdmin) {
+            setAdmin(false);
+        }
+        if (setSuperAdmin) {
+            setSuperAdmin(false);
+        }
+        if (setAdminMode) {
+            setAdminMode(false);
+        }
+        if (setDepartmentId) {
+            setDepartmentId(-1);
+        }
+        if (setDepartmentName) {
+            setDepartmentName('');
         }
     };
 
@@ -82,7 +103,10 @@ const Header: FC<LoginProps> = (props) => {
                         item
                         key={link}
                     >
-                        <Link href={link}>
+                        <Link
+                            href={link}
+                            underline="none"
+                        >
                             <StyledTypographyDesktop
                                 style={{
                                     fontWeight: router.pathname === link ? 'bold' : 'normal',
@@ -126,7 +150,7 @@ const Header: FC<LoginProps> = (props) => {
                 onOpen={() => setOpenDrawer(true)}
                 anchor="right"
             >
-                <div style={{ ...theme.mixins.toolbar, marginBottom: '2em' }} />
+                <div style={{ ...lightTheme.mixins.toolbar, marginBottom: '2em' }} />
                 <Box
                     sx={{ width: 200 }}
                     role="presentation"
@@ -139,6 +163,11 @@ const Header: FC<LoginProps> = (props) => {
                                 onClick={() => {
                                     setOpenDrawer(false);
                                 }}
+                                sx={{
+                                    '&:hover': {
+                                        backgroundColor: `${themeMode === 'dark' ? darkGrey : lightGrey}`
+                                    }
+                                }}
                             >
                                 <ListItemText>
                                     <Link
@@ -147,8 +176,15 @@ const Header: FC<LoginProps> = (props) => {
                                     >
                                         <Typography
                                             variant="h3"
-                                            style={{
-                                                color: router.pathname === link ? 'primary' : darkGrey,
+                                            sx={{
+                                                color:
+                                                    router.pathname === link
+                                                        ? themeMode === 'dark'
+                                                            ? mainWhite
+                                                            : 'primary'
+                                                        : themeMode === 'dark'
+                                                        ? lightGrey
+                                                        : darkGrey,
                                                 fontWeight: router.pathname === link ? 'bold' : 'normal'
                                             }}
                                         >
@@ -162,11 +198,11 @@ const Header: FC<LoginProps> = (props) => {
                             onClick={logoutClick}
                             sx={{
                                 '&:hover': {
-                                    backgroundColor: lightGrey
+                                    backgroundColor: `${themeMode === 'dark' ? darkGrey : lightGrey}`
                                 }
                             }}
                         >
-                            <ListItemText disableTypography>
+                            <ListItemText>
                                 <div
                                     style={{
                                         display: 'flex',
@@ -177,7 +213,7 @@ const Header: FC<LoginProps> = (props) => {
                                     <LogoutIcon style={{ color: errorRed }} />
                                     <Typography
                                         variant="h3"
-                                        style={{ color: darkGrey }}
+                                        style={{ color: themeMode === 'dark' ? lightGrey : darkGrey }}
                                     >
                                         &nbsp;Abmelden
                                     </Typography>
@@ -198,28 +234,25 @@ const Header: FC<LoginProps> = (props) => {
 
     return (
         <Box sx={{ flexGrow: 1 }}>
-            <AppBar>
+            <AppBar enableColorOnDark>
                 <Toolbar
                     disableGutters
                     style={{
                         height: '4.5em',
-                        maxWidth: '1280px',
                         margin: '0 auto',
                         width: '96%',
                         padding: matches ? '0 8px' : '8px'
                     }}
                 >
                     <Link href="/">
-                        <Grid container alignItems="center">
-                            <Image
-                                alt="IM"
-                                src={logo}
-                                height="45px"
-                                width="150px"
-                                layout="fixed"
-                                priority
-                            />
-                        </Grid>
+                        <Image
+                            alt="Inventory Management"
+                            src={logo}
+                            height={50}
+                            width={170}
+                            style={{marginTop: '9px'}}
+                            priority
+                        />
                     </Link>
                     {login && (matches ? drawer : tabs)}
                 </Toolbar>

@@ -1,8 +1,6 @@
 import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { ThemeProvider } from '@mui/material/styles';
 import { ILocation } from 'components/interfaces';
-import { tableTheme } from 'styles/tableTheme';
 
 interface IDataTableLocationProps {
     locationList: ILocation[];
@@ -14,14 +12,13 @@ const DataTableLocation: FC<IDataTableLocationProps> = (props) => {
     const { locationList } = props;
 
     return (
-        <ThemeProvider theme={tableTheme}>
+        <div style={locationList.length < 15 ? { height: 'auto' } : { height: 700 }}>
             <DataGrid
                 rows={locationList.map((location: ILocation) => ({
                     id: location.id,
                     locationName: location.locationName
                 }))}
-                autoHeight={true}
-                autoPageSize={true}
+                autoHeight={locationList.length < 15}
                 density="compact"
                 columns={columns}
                 pageSize={50}
@@ -29,7 +26,7 @@ const DataTableLocation: FC<IDataTableLocationProps> = (props) => {
                 hideFooterSelectedRowCount
                 components={{ Toolbar: GridToolbar }}
             />
-        </ThemeProvider>
+        </div>
     );
 };
 

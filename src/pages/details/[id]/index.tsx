@@ -1,24 +1,31 @@
 import { FC, useContext, useEffect, useState } from 'react';
-import { Alert, Container, Stack, Typography } from '@mui/material';
+import { Container, Grid, Typography, useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/router';
-import { IDepartment, IDetailInventoryItem, ILocation, IPicture, ISupplier, IType } from 'components/interfaces';
+import { IDepartment, IDetailInventoryItem, ILocation, IPicture, IPrinter, ISupplier, IType } from 'components/interfaces';
 import LoadingSpinner from 'components/layout/LoadingSpinner';
-import ServerErrorAlert from 'components/alerts/ServerErrorAlert';
 import PDFDisplay from 'components/image-upload/PDFDisplay';
-import InventoryForm from 'components/forms/InventoryForm';
+import InventoryForm from 'components/forms/inventory-form/InventoryForm';
 import CustomButton from 'components/form-fields/CustomButton';
 import { ArrowBack, Cancel, Edit, Repeat } from '@mui/icons-material';
 import ImageGallery from 'components/image-upload/ImageGallery';
-import ActivationForm from 'components/forms/ActivationForm';
-import DataTableChanges from 'components/tables/DataTableChanges';
+import ActivationForm from 'components/forms/inventory-form/ActivationForm';
+import DataTableChange from 'components/tables/DataTableChange';
 import { UserContext } from 'pages/_app';
 import { Box } from '@mui/system';
+import PrintingForm from 'components/forms/inventory-form/PrintingForm';
+import CustomDivider from 'components/layout/CustomDivider';
+import lightTheme, { darkGrey, darkTheme } from 'styles/theme';
+import HandoverForm from 'components/forms/inventory-form/HandoverForm';
+import QrCode from 'components/layout/QrCode';
+import CustomAlert from 'components/form-fields/CustomAlert';
 
 const Details: FC = () => {
     const router = useRouter();
     const { id } = router.query;
+    const matchesTablet = useMediaQuery(lightTheme.breakpoints.down('md'));
+    const matchesPhone = useMediaQuery(lightTheme.breakpoints.down('sm'));
 
-    const { departmentId, departmentName, superAdmin, firstName, lastName } = useContext(UserContext);
+    const { userId, firstName, lastName, admin, superAdmin, departmentId, departmentName, themeMode } = useContext(UserContext);
 
     const [error, setError] = useState('');
     const [inventoryItem, setInventoryItem] = useState<IDetailInventoryItem | null>(null);
@@ -28,6 +35,7 @@ const Details: FC = () => {
     const [type, setType] = useState<IType[] | JSON | null>(null);
     const [location, setLocation] = useState<ILocation[] | JSON | null>(null);
     const [supplier, setSupplier] = useState<ISupplier[] | JSON | null>(null);
+    const [printer, setPrinter] = useState<IPrinter[] | JSON | null>(null);
     const [department, setDepartment] = useState<IDepartment[] | JSON | null>(null);
     const [formError, setFormError] = useState('');
     const [activationMessage, setActivationMessage] = useState('');
@@ -47,6 +55,7 @@ const Details: FC = () => {
 
     useEffect(() => {
         if (id) {
+            // TODO Server error when trying to access id that does not exist
             const fetchInventoryData = async () => {
                 await fetch(`${process.env.HOSTNAME}/api/inventorymanagement/inventory/${id}`, {
                     method: 'GET',
@@ -68,7 +77,8 @@ const Details: FC = () => {
             fetchData('type', setType).catch((e) => setError(e.message));
             fetchData('location', setLocation).catch((e) => setError(e.message));
             fetchData('supplier', setSupplier).catch((e) => setError(e.message));
-            if (superAdmin) {
+            fetchData('printer/' + userId, setPrinter).catch((e) => setError(e.message));
+            if (admin || superAdmin) {
                 fetchData('department', setDepartment).catch((e) => setError(e.message));
             } else {
                 setDepartment([{ id: departmentId, departmentName }]);
@@ -104,12 +114,14 @@ const Details: FC = () => {
         setLoading(false);
     };
 
+    // TODO the breakpoint-section needs some love :-)
+
     if (!id || !inventoryItem || loading) {
         return (
             <Container
                 sx={{
                     mt: 12,
-                    mb: 3,
+                    mb: 8,
                     display: 'flex',
                     flexFlow: 'column nowrap',
                     alignItems: 'center'
@@ -119,56 +131,84 @@ const Details: FC = () => {
             </Container>
         );
     } else if (error) {
-        return <ServerErrorAlert />;
+        return (
+            <CustomAlert
+                state="warning"
+                message="Serverfehler - bitte kontaktiere die IT!"
+            />
+        );
     } else if (formError || updated || activationMessage) {
         return (
-            <Container sx={{ mt: 12, mb: 3, display: 'flex', flexFlow: 'column nowrap', alignItems: 'center' }}>
-                <Stack
-                    sx={{
-                        width: '17em',
-                        marginTop: '0.8em',
-                        marginBottom: '0.5em'
-                    }}
-                    spacing={2}
+            <Container sx={{ mt: 12, mb: 8, display: 'flex', flexFlow: 'column nowrap', alignItems: 'center' }}>
+                <Box sx={{ my: 1 }} />
+                <Typography
+                    variant="h1"
+                    sx={{ alignSelf: 'center', flexGrow: 1 }}
                 >
-                    {formError && <Alert severity="error">Es ist folgender fehler aufgetreten: {formError}</Alert>}
-                    {updated && !activationMessage && <Alert severity="success">Der Gegenstand wurde erfolgreich bearbeitet.</Alert>}
-                    {activationMessage && <Alert severity="success">{activationMessage}</Alert>}
-                </Stack>
+                    {inventoryItem.itemInternalNumber}
+                </Typography>
+                <Box sx={{ my: 0.5 }} />
                 {formError && (
-                    <CustomButton
-                        label="Erneut versuchen"
-                        onClick={() => setFormError('')}
-                        symbol={<Repeat />}
-                    />
+                    <>
+                        <CustomAlert
+                            state="error"
+                            message={'Es ist folgender fehler aufgetreten: ' + { formError }}
+                        />
+                        <CustomButton
+                            label="Erneut versuchen"
+                            onClick={() => setFormError('')}
+                            symbol={<Repeat />}
+                        />
+                    </>
                 )}
                 {(updated || activationMessage) && (
-                    <CustomButton
-                        label="Zurück zur Detailseite"
-                        onClick={() => {
-                            setLoading(true);
-                            setUpdated(false);
-                            setDisabled(true);
-                            setActivationMessage('');
-                        }}
-                        symbol={<ArrowBack />}
-                    />
+                    <>
+                        {activationMessage ? (
+                            <CustomAlert
+                                state="success"
+                                message={activationMessage}
+                            />
+                        ) : (
+                            <CustomAlert
+                                state="success"
+                                message="Der Gegenstand wurde erfolgreich bearbeitet."
+                            />
+                        )}
+                        <CustomButton
+                            label="Zurück zur Detailseite"
+                            onClick={() => {
+                                setLoading(true);
+                                setUpdated(false);
+                                setDisabled(true);
+                                setActivationMessage('');
+                            }}
+                            symbol={<ArrowBack />}
+                        />
+                    </>
                 )}
             </Container>
         );
-    } else if (!superAdmin && inventoryItem.department?.id !== departmentId) {
+    } else if (!admin && !superAdmin && inventoryItem.department?.id !== departmentId) {
         return (
-            <Container sx={{ mt: 12, mb: 3, display: 'flex', flexFlow: 'column nowrap', alignItems: 'center' }}>
-                <Stack
-                    sx={{
-                        width: '17em',
-                        marginTop: '0.8em',
-                        marginBottom: '0.5em'
-                    }}
-                    spacing={2}
+            <Container
+                sx={{
+                    mt: 12,
+                    mb: 8,
+                    display: 'flex',
+                    flexFlow: 'column nowrap',
+                    alignItems: 'center'
+                }}
+            >
+                <Typography
+                    variant="h1"
+                    sx={{ alignSelf: 'center', flexGrow: 1 }}
                 >
-                    <Alert severity="error">Dieser Inventargegenstand gehört nicht zu Ihrer Abteilung und kann somit nicht bearbeitet werden.</Alert>
-                </Stack>
+                    {inventoryItem.itemInternalNumber}
+                </Typography>
+                <CustomAlert
+                    state="error"
+                    message="Dieser Inventargegenstand gehört nicht zu Ihrer Abteilung und kann somit nicht bearbeitet werden."
+                />
                 <CustomButton
                     label="Zurück zur Hauptseite"
                     onClick={() => {
@@ -183,57 +223,205 @@ const Details: FC = () => {
             <Container
                 sx={{
                     mt: 12,
-                    mb: 6,
+                    mb: 8,
                     display: 'flex',
                     flexFlow: 'column nowrap',
                     alignItems: 'center'
                 }}
             >
-                <Container sx={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'flex-start' }}>
+                {!inventoryItem.active && (
                     <Typography
                         variant="h1"
-                        sx={{ alignSelf: 'center', flexGrow: 1 }}
+                        color={themeMode === 'dark' ? darkTheme.palette.error.main : lightTheme.palette.error.main}
                     >
-                        {inventoryItem.itemInternalNumber}
+                        <strong>*** DEAKTIVIERT ***</strong>
                     </Typography>
-                    <CustomButton
-                        onClick={() => setDisabled((disable) => !disable)}
-                        label={disabled ? 'Bearbeiten' : 'Abbrechen'}
-                        symbol={disabled ? <Edit /> : <Cancel />}
-                        disabled={(!inventoryItem.active && !superAdmin) || (!superAdmin && inventoryItem.pieces === inventoryItem.piecesDropped)}
-                    />
-                </Container>
+                )}
+                {inventoryItem.pieces === inventoryItem.piecesDropped && (
+                    <Typography
+                        variant="h1"
+                        color={inventoryItem.active ? (themeMode === 'dark' ? darkTheme.palette.error.main : lightTheme.palette.error.main) : darkGrey}
+                    >
+                        <strong>*** AUSGESCHIEDEN ***</strong>
+                    </Typography>
+                )}
+                {inventoryItem.itemInternalNumber && matchesTablet ? (
+                    <Grid
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginTop: '10px'
+                        }}
+                    >
+                        {!(imageList && imageList.length > 0) && !(pdfList && pdfList.length > 0) && (
+                            <QrCode
+                                value={inventoryItem.itemInternalNumber}
+                                size={64}
+                            />
+                        )}
+                        <Typography
+                            variant="h1"
+                            sx={{
+                                alignSelf: 'center',
+                                flexGrow: 1,
+                                marginLeft: `${!(imageList && imageList.length > 0) && !(pdfList && pdfList.length > 0) && '20px'}`
+                            }}
+                        >
+                            {inventoryItem.itemInternalNumber}
+                        </Typography>
+                    </Grid>
+                ) : (
+                    <Container
+                        sx={{
+                            display: 'flex',
+                            flexFlow: 'row nowrap',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                            marginLeft: '0.25em'
+                        }}
+                    >
+                        {inventoryItem.itemInternalNumber && !(imageList && imageList.length > 0) && !(pdfList && pdfList.length > 0) ? (
+                            <>
+                                <QrCode
+                                    value={inventoryItem.itemInternalNumber}
+                                    size={64}
+                                />
+                                <Typography
+                                    variant="h1"
+                                    sx={{ alignSelf: 'center', flexGrow: 1, marginLeft: '25px' }}
+                                >
+                                    {inventoryItem.itemInternalNumber}
+                                </Typography>
+                            </>
+                        ) : (
+                            <Typography
+                                variant="h1"
+                                sx={{ alignSelf: 'center', flexGrow: 1 }}
+                            >
+                                {inventoryItem.itemInternalNumber}
+                            </Typography>
+                        )}
+                        {!matchesTablet && (
+                            <CustomButton
+                                onClick={() => setDisabled((disable) => !disable)}
+                                label={disabled ? 'Bearbeiten' : 'Abbrechen'}
+                                symbol={disabled ? <Edit /> : <Cancel />}
+                                disabled={!inventoryItem.active || (!admin && !superAdmin && inventoryItem.pieces === inventoryItem.piecesDropped)}
+                            />
+                        )}
+                    </Container>
+                )}
                 <Container
                     sx={{
                         mb: 3,
                         display: 'flex',
                         flexFlow: 'row wrap',
-                        alignItems: 'center',
                         justifyContent: 'space-around'
                     }}
                 >
-                    {imageList && imageList.length > 0 && <ImageGallery images={imageList} />}
-                    {pdfList && pdfList.length > 0 && <PDFDisplay pdfs={pdfList} />}
+                    {inventoryItem.itemInternalNumber && imageList && imageList.length > 0 && !(pdfList && pdfList.length > 0) ? (
+                        matchesPhone ? (
+                            <Box
+                                justifyContent="center"
+                                sx={{ paddingTop: '1.5em' }}
+                            >
+                                <QrCode
+                                    value={inventoryItem.itemInternalNumber}
+                                    size={128}
+                                />
+                            </Box>
+                        ) : (
+                            <Box
+                                marginRight="auto"
+                                marginBottom="1em"
+                                marginLeft={matchesPhone ? '3em' : '0.5em'}
+                                sx={{ paddingTop: '1em' }}
+                            >
+                                <QrCode
+                                    value={inventoryItem.itemInternalNumber}
+                                    size={128}
+                                />
+                            </Box>
+                        )
+                    ) : (
+                        inventoryItem.itemInternalNumber &&
+                        ((imageList && imageList.length > 0) || (pdfList && pdfList.length > 0)) && (
+                            <Box
+                                marginBottom={matchesPhone ? 0 : '1em'}
+                                marginRight={matchesPhone ? '3em' : 'auto'}
+                                marginLeft={matchesPhone ? '3em' : '0.5em'}
+                                sx={{ paddingTop: '1em' }}
+                            >
+                                <QrCode
+                                    value={inventoryItem.itemInternalNumber}
+                                    size={128}
+                                />
+                            </Box>
+                        )
+                    )}
+                    {pdfList && pdfList.length > 0 && (
+                        <Grid
+                            marginLeft={matchesPhone ? 0 : '2em'}
+                            marginRight={matchesPhone ? 0 : '2em'}
+                        >
+                            <PDFDisplay pdfs={pdfList} />
+                        </Grid>
+                    )}
+                    {imageList && imageList.length > 0 && (
+                        <Box sx={{ paddingTop: '1em' }}>
+                            <ImageGallery images={imageList} />
+                        </Box>
+                    )}
                 </Container>
+                {matchesTablet && (
+                    <Grid marginBottom="25px">
+                        <CustomButton
+                            onClick={() => setDisabled((disable) => !disable)}
+                            label={disabled ? 'Bearbeiten' : 'Abbrechen'}
+                            symbol={disabled ? <Edit /> : <Cancel />}
+                            disabled={!inventoryItem.active || (!admin && !superAdmin && inventoryItem.pieces === inventoryItem.piecesDropped)}
+                        />
+                    </Grid>
+                )}
                 <InventoryForm
                     type={type as IType[]}
                     supplier={supplier as ISupplier[]}
                     location={location as ILocation[]}
+                    printer={printer as IPrinter[]}
                     department={department as IDepartment[]}
                     preFilledValues={inventoryItem}
                     disabled={disabled}
                     onFormSent={onFormSent}
                 />
-                <Box sx={{ my: 2 }} />
+                {inventoryItem.active && inventoryItem.pieces !== inventoryItem.piecesDropped && (
+                    <>
+                        <CustomDivider />
+                        <HandoverForm
+                            inventoryItem={inventoryItem}
+                            setLoading={setLoading}
+                            setUpdated={setUpdated}
+                        />
+                        {printer && (
+                            <>
+                                <CustomDivider />
+                                <PrintingForm
+                                    inventoryId={inventoryItem.id as number}
+                                    printerList={printer as IPrinter[]}
+                                    showHeadline={false}
+                                />
+                            </>
+                        )}
+                    </>
+                )}
+                <CustomDivider />
                 <ActivationForm
-                    disabled={disabled}
                     inventoryItem={inventoryItem}
                     setFormError={setFormError}
                     setUpdated={setUpdated}
                     setActivationMessage={setActivationMessage}
                 />
-                <Box sx={{ my: 2 }} />
-                {inventoryItem?.change && <DataTableChanges changeList={inventoryItem.change} />}
+                <CustomDivider />
+                {inventoryItem?.change && <DataTableChange changeList={inventoryItem.change} />}
                 <Box sx={{ my: 3 }} />
             </Container>
         );

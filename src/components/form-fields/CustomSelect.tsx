@@ -8,11 +8,12 @@ interface ISelectProps {
     label: string;
     setValue: (val: number) => void;
     error: boolean;
+    admin: boolean;
     superAdmin: boolean;
 }
 
 const CustomSelect: FC<ISelectProps> = (props) => {
-    const { label, setValue, error, superAdmin } = props;
+    const { label, setValue, error, admin, superAdmin } = props;
     const handleChange = (event: SelectChangeEvent) => {
         setValue(Number(event.target.value));
     };
@@ -37,7 +38,8 @@ const CustomSelect: FC<ISelectProps> = (props) => {
                 <MenuItem value={2}>Kategorie</MenuItem>
                 <MenuItem value={3}>Standort</MenuItem>
                 <MenuItem value={4}>Lieferant</MenuItem>
-                {superAdmin && <MenuItem value={5}>Abteilung</MenuItem>}
+                {(admin || superAdmin) && <MenuItem value={5}>Abteilung</MenuItem>}
+                {(superAdmin) && <MenuItem value={6}>Drucker</MenuItem>}
             </Select>
         </FormControl>
     );

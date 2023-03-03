@@ -4,14 +4,14 @@ import { AppProps } from 'next/app';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { CacheProvider, EmotionCache } from '@emotion/react';
-
-import theme from 'styles/theme';
+import lightTheme, { darkTheme } from 'styles/theme';
 import Header from 'components/layout/Header';
 import Footer from 'components/layout/Footer';
 import LoginForm from 'components/forms/LoginForm';
 import createEmotionCache from 'utils/createEmotionCache';
-import NoDepartmentErrorAlert from 'components/alerts/NoDepartmentErrorAlert';
 import { IUserContext } from 'components/interfaces';
+import CustomAlert from 'components/form-fields/CustomAlert';
+import { Container } from '@mui/material';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -29,9 +29,12 @@ const MyApp = (props: MyAppProps) => {
     const [userId, setUserId] = useState(-1);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [admin, setAdmin] = useState(false);
+    const [superAdmin, setSuperAdmin] = useState(false);
+    const [adminMode, setAdminMode] = useState(false);
     const [departmentId, setDepartmentId] = useState(-1);
     const [departmentName, setDepartmentName] = useState('');
-    const [superAdmin, setSuperAdmin] = useState(false);
+    const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
 
     return (
         <CacheProvider value={emotionCache}>
@@ -52,20 +55,23 @@ const MyApp = (props: MyAppProps) => {
                     setFirstName,
                     lastName,
                     setLastName,
-                    departmentId,
-                    setDepartmentId,
+                    admin,
+                    setAdmin,
                     superAdmin,
                     setSuperAdmin,
+                    adminMode,
+                    setAdminMode,
+                    departmentId,
+                    setDepartmentId,
+                    departmentName,
                     setDepartmentName,
-                    departmentName
+                    themeMode,
+                    setThemeMode
                 }}
             >
-                <ThemeProvider theme={theme}>
-                    <CssBaseline />
-                    <Header
-                        login={login}
-                        setLogin={setLogin}
-                    />
+                <ThemeProvider theme={themeMode === 'dark' ? darkTheme : lightTheme}>
+                    <CssBaseline enableColorScheme />
+                    <Header />
                     <div
                         style={{
                             display: 'flex',
@@ -74,7 +80,24 @@ const MyApp = (props: MyAppProps) => {
                             justifyContent: 'space-between'
                         }}
                     >
-                        {login ? departmentId !== -1 || superAdmin ? <Component {...pageProps} /> : <NoDepartmentErrorAlert /> : <LoginForm />}
+                        {login ? (
+                            (departmentId && departmentId !== -1) || admin || superAdmin ? (
+                                <Component {...pageProps} />
+                            ) : (
+                                <Container sx={{ mt: 12, mb: 8 }}>
+                                    <CustomAlert
+                                        state="warning"
+                                        message={
+                                            admin || superAdmin
+                                                ? 'Du musst dich zunächst einer Abteilung zuweisen, bevor du die Funktion nutzen kannst!'
+                                                : 'Du wurdest noch keiner Abteilung zugewiesen und kannst das Inventarverwaltungssystem daher nicht benutzen! Wende dich bitte an einen Administrator!'
+                                        }
+                                    />
+                                </Container>
+                            )
+                        ) : (
+                            <LoginForm />
+                        )}
                         <Footer />
                     </div>
                 </ThemeProvider>

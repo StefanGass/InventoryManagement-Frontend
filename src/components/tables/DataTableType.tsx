@@ -1,8 +1,6 @@
 import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { ThemeProvider } from '@mui/material/styles';
 import { IType } from 'components/interfaces';
-import { tableTheme } from 'styles/tableTheme';
 
 interface IDataTableTypeProps {
     typeList: IType[];
@@ -17,15 +15,14 @@ const DataTableType: FC<IDataTableTypeProps> = (props) => {
     const { typeList } = props;
 
     return (
-        <ThemeProvider theme={tableTheme}>
+        <div style={typeList.length < 15 ? { height: 'auto' } : { height: 700 }}>
             <DataGrid
                 rows={typeList.map((type: IType) => ({
                     id: type?.id,
                     typeName: type?.typeName,
                     categoryName: type?.category?.categoryName
                 }))}
-                autoHeight={true}
-                autoPageSize={true}
+                autoHeight={typeList.length < 15}
                 density="compact"
                 columns={columns}
                 pageSize={50}
@@ -33,7 +30,7 @@ const DataTableType: FC<IDataTableTypeProps> = (props) => {
                 hideFooterSelectedRowCount
                 components={{ Toolbar: GridToolbar }}
             />
-        </ThemeProvider>
+        </div>
     );
 };
 

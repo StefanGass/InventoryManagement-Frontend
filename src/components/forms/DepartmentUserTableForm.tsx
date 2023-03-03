@@ -2,10 +2,10 @@ import { IDepartment, IDepartmentMemberConverted } from 'components/interfaces';
 import { GridRowId } from '@mui/x-data-grid';
 import { Grid } from '@mui/material';
 import DataTableUser from 'components/tables/DataTableUser';
-import ParameterFormAddDeleteAlert from 'components/alerts/ParameterFormAddDeleteAlert';
 import CustomButton from 'components/form-fields/CustomButton';
 import { Remove } from '@mui/icons-material';
 import { FC, MouseEvent, useEffect, useState } from 'react';
+import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IDepartmentUserTable {
     department: IDepartment;
@@ -15,7 +15,7 @@ interface IDepartmentUserTable {
     handleError: () => void;
 }
 
-const DepartmentUserTable: FC<IDepartmentUserTable> = (props) => {
+const DepartmentUserTableForm: FC<IDepartmentUserTable> = (props) => {
     const { userList, fetchAndMergeChosenDepartmentWithUserList, department, setIsSend, handleError } = props;
     const [selectionModelDelete, setSelectionModelDelete] = useState<GridRowId[]>([]);
     const [deleteMemberInputEmptyAlert, setDeleteMemberInputEmptyAlert] = useState(false);
@@ -74,11 +74,18 @@ const DepartmentUserTable: FC<IDepartmentUserTable> = (props) => {
                     setSelectionModel={setSelectionModelDelete}
                 />
             </Grid>
-            <ParameterFormAddDeleteAlert
-                addSuccessfulAlert={deleteMemberSuccessfulAlert}
-                inputEmptyAlert={deleteMemberInputEmptyAlert}
-                duplicateErrorAlert={false}
-            />
+            {deleteMemberSuccessfulAlert && (
+                <CustomAlert
+                    state="success"
+                    message="User:in(nen) erfolgreich entfernt!"
+                />
+            )}
+            {deleteMemberInputEmptyAlert && (
+                <CustomAlert
+                    state="error"
+                    message="Mindestens ein:e User:in auswählen!"
+                />
+            )}
             <Grid
                 container
                 justifyContent="center"
@@ -94,4 +101,4 @@ const DepartmentUserTable: FC<IDepartmentUserTable> = (props) => {
     );
 };
 
-export default DepartmentUserTable;
+export default DepartmentUserTableForm;

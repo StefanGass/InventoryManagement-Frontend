@@ -1,6 +1,5 @@
 import { FC } from 'react';
-import { Button, Typography } from '@mui/material';
-import theme from 'styles/theme';
+import { Button, Grid, Typography } from '@mui/material';
 
 interface ICustomButton {
     onClick: (e?: any) => void;
@@ -11,23 +10,28 @@ interface ICustomButton {
 
 const CustomButton: FC<ICustomButton> = ({ onClick, label, symbol, disabled }) => {
     return (
-        <Button
-            variant="contained"
-            onClick={onClick}
-            style={{
-                color: theme.palette.secondary.main,
-                height: '4em',
-                width: '19.35em',
+        <Grid
+            sx={{
+                cursor: `${disabled ? 'not-allowed' : 'pointer'}`,
                 marginTop: '1em',
                 marginBottom: '1em',
                 marginRight: '0.5em',
                 marginLeft: '0.5em'
             }}
-            disabled={disabled}
         >
-            {symbol}
-            <Typography>&nbsp;&nbsp;{label}&nbsp;&nbsp;&nbsp;</Typography>
-        </Button>
+            <Button
+                variant="contained"
+                onClick={onClick}
+                disabled={disabled}
+                style={{
+                    height: '4em',
+                    width: '19.35em'
+                }}
+            >
+                {symbol}
+                <Typography>&nbsp;&nbsp;{label}&nbsp;&nbsp;&nbsp;</Typography>
+            </Button>
+        </Grid>
     );
 };
 

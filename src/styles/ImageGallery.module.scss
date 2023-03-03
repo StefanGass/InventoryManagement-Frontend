@@ -1,13 +1,17 @@
 .image {
     width: 300px;
     height: 300px;
-    border: 1px solid black;
     display: flex;
     justify-content: center;
     align-content: center;
     border-radius: 10px;
     margin-bottom: 10px;
-
+    &.lightmode {
+        border: 1px solid black;
+    }
+    &.darkmode {
+        border: 1px solid white;
+    }
     img {
         max-width: 300px;
         max-height: 300px;
@@ -22,32 +26,42 @@
 .thumbnail {
     width: 100px;
     height: 100px;
-    border: 1px solid #bdbdbd;
     display: flex;
     justify-content: center;
     align-content: center;
     border-radius: 10px;
-    opacity: 40%;
-
+    opacity: 50%;
+    &.lightmode {
+        border: 1px solid #616161;
+    }
+    &.darkmode {
+        border: 1px solid #bdbdbd;
+    }
     img {
         max-width: 100px;
         max-height: 100px;
         object-fit: contain;
         padding: 3px;
     }
-
     &:hover {
         cursor: pointer;
     }
-
-    &.active {
+    &.activelightmode {
         border: 1px solid black;
+        opacity: 100%;
+    }
+    &.activedarkmode {
+        border: 1px solid white;
         opacity: 100%;
     }
 }
 
 .thumbnailcontainer {
-    display: flex;
-    flex-flow: row wrap;
-    width: 300px;
+    width: auto;
+    max-width: 300px;
+    margin-bottom: auto;
+    &.morethanthree {
+        display: flex;
+        flex-flow: row wrap;
+    }
 }
