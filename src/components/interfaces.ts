@@ -49,14 +49,23 @@ export interface IDetailInventoryItem extends IInventoryItem {
     change?: IChange[];
 }
 
-export interface IDataTableInventory {
+export interface IDataTableInventoryBase{
+    showSwitchAndLegend?:boolean;
+}
+export interface IDataTableInventory extends  IDataTableInventoryBase{
+    setSearch:(search:string) => void
+    showSearchBar?:boolean;
+    searching: boolean;
     items: IInventoryItem[];
-    setItems: (items: IInventoryItem[]) => void;
-    activeAndNotDroppedItems: IInventoryItem[];
-    activeAndNotActiveAndNotDroppedItems: IInventoryItem[];
-    activeAndDroppedAndNotDroppedItems: IInventoryItem[];
-    allItems: IInventoryItem[];
-    showSwitchSearchBarAndLegend?: boolean;
+}
+
+export interface IDatatabeInventorySearchable extends  IDataTableInventoryBase{
+    getSearchUrl:(search:string) => string;
+}
+
+export interface ISearchForm {
+    setSearch:(search:string) => void;
+    items: IInventoryItem[];
 }
 
 export interface IType {

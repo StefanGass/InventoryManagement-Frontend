@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from "react";
 import { Button, Grid, Paper, Tooltip } from '@mui/material';
 import { Box } from '@mui/system';
 import CustomButton from 'components/form-fields/CustomButton';
@@ -6,8 +6,15 @@ import { Close, PhotoCamera, QrCode, Search } from '@mui/icons-material';
 import jsQR from 'jsqr';
 import TextField from '@mui/material/TextField';
 import { useRouter } from 'next/router';
+import { useDebounce } from 'utils/useDebounce';
+import { ISearchForm } from 'components/interfaces';
 
-const QrScanningForm = () => {
+const QrScanningForm: FC<ISearchForm> = (props) => {
+    const {
+        setSearch,
+        items
+    } = props
+
     const router = useRouter();
     const [value, setValue] = useState('');
     const [error, setError] = useState(false);
@@ -19,43 +26,57 @@ const QrScanningForm = () => {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const qrVideo = useRef<HTMLVideoElement>(null);
-
+    const debouncedSearchTerm = useDebounce(value, 500);
     useEffect(() => {
         setError(false);
     }, [value]);
 
+    useEffect(
+        () => {
+            if (value.length > 1)
+                setSearch(value);
+            else if (value.length == 0)
+                setSearch("");
+        },
+        [debouncedSearchTerm]
+    );
     const handleError = (error: any) => {
         console.log(error);
         setError(true);
     };
 
     const startSearchClick = (codeData: string | null) => {
-        fetch(
-            codeData
-                ? `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${codeData}`
-                : `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${value}`,
-            {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }
-        )
-            .then((response) => {
-                if (response.ok) {
-                    response
-                        .json()
-                        .then((result) => {
-                            router.push('/details/' + result);
-                        })
-                        .catch((error) => {
-                            handleError(error);
-                        });
-                } else {
-                    handleError(response);
+        if(items.length == 1){
+            router.push('/details/' + items[0].id);
+        }else if(codeData){
+            fetch(
+                codeData
+                    ? `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${codeData}`
+                    : `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${value}`,
+                {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
                 }
-            })
-            .catch((error) => {
-                handleError(error);
-            });
+            )
+                .then((response) => {
+                    if (response.ok) {
+                        response
+                            .json()
+                            .then((result) => {
+                                router.push('/details/' + result);
+                            })
+                            .catch((error) => {
+                                handleError(error);
+                            });
+                    } else {
+                        handleError(response);
+                    }
+                })
+                .catch((error) => {
+                    handleError(error);
+                });
+        }
+
     };
 
     const checkCameraStream = () => {
@@ -210,7 +231,7 @@ const QrScanningForm = () => {
                             }
                             fullWidth={true}
                             size="small"
-                            placeholder="Inventarnummer eingeben"
+                            placeholder="Suchbegriff eingeben"
                             helperText={error && 'Inventarnummer wurde nicht gefunden.'}
                             InputLabelProps={{ shrink: true }}
                             variant="outlined"

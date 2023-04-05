@@ -1,29 +1,28 @@
-import { FC, useContext, useEffect, useState } from 'react';
-import { Box, Container, Grid, Tooltip, Typography, useMediaQuery } from '@mui/material';
-import LoadingSpinner from 'components/layout/LoadingSpinner';
-import { UserContext } from 'pages/_app';
-import { IChartItem, IInventoryItem } from 'components/interfaces';
-import DataTableInventory from 'components/tables/DataTableInventory';
-import DataTableTypeChart from 'components/tables/DataTableTypeChart';
-import CustomPieChart from 'components/charts/CustomPieChart';
-import CustomMultilineChart from 'components/charts/CustomMultilineChart';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import { Info } from '@mui/icons-material';
-import CustomAlert from 'components/form-fields/CustomAlert';
-import lightTheme from 'styles/theme';
+import { FC, useContext, useEffect, useState } from "react";
+import { Box, Container, Grid, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import LoadingSpinner from "components/layout/LoadingSpinner";
+import { UserContext } from "pages/_app";
+import { IChartItem } from "components/interfaces";
+import DataTableTypeChart from "components/tables/DataTableTypeChart";
+import CustomPieChart from "components/charts/CustomPieChart";
+import CustomMultilineChart from "components/charts/CustomMultilineChart";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
+import { Info } from "@mui/icons-material";
+import CustomAlert from "components/form-fields/CustomAlert";
+import lightTheme from "styles/theme";
+import DataTableInventorySearchable from "components/tables/DataTableInventorySearchable";
 
 const Index: FC = () => {
     const { admin, superAdmin, adminMode, setAdminMode, departmentId } = useContext(UserContext);
 
-    const matchesPhone = useMediaQuery(lightTheme.breakpoints.down('sm'));
+    const matchesPhone = useMediaQuery(lightTheme.breakpoints.down("sm"));
 
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState(false);
 
     const [activityItems, setActivityItems] = useState<IChartItem[]>([]);
-    const [lastItems, setLastItems] = useState<IInventoryItem[]>([]);
     const [typeChartItems, setTypeChartItems] = useState<IChartItem[]>([]);
     const [departmentChartItems, setDepartmentChartItems] = useState<IChartItem[]>([]);
 
@@ -99,44 +98,14 @@ const Index: FC = () => {
             });
     };
 
-    const getRequestLastItems = () => {
-        fetch(
-            (admin || superAdmin) && checkedSwitch
-                ? `${process.env.HOSTNAME}/api/inventorymanagement/chart/last_items/`
-                : `${process.env.HOSTNAME}/api/inventorymanagement/chart/last_items/department/${departmentId}`,
-            {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }
-        )
-            .then((response) => {
-                if (response.ok) {
-                    response
-                        .json()
-                        .then((result) => {
-                            setLastItems(result);
-                            getRequestTypeChart();
-                        })
-                        .catch((error) => {
-                            handleError(error);
-                        });
-                } else {
-                    handleError(response);
-                }
-            })
-            .catch((error) => {
-                handleError(error);
-            });
-    };
-
     const getRequests = () => {
         fetch(
             (admin || superAdmin) && checkedSwitch
                 ? `${process.env.HOSTNAME}/api/inventorymanagement/chart/activity/`
                 : `${process.env.HOSTNAME}/api/inventorymanagement/chart/activity/department/${departmentId}`,
             {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
             }
         )
             .then((response) => {
@@ -145,7 +114,7 @@ const Index: FC = () => {
                         .json()
                         .then((result) => {
                             setActivityItems(result);
-                            getRequestLastItems();
+                            getRequestTypeChart();
                         })
                         .catch((error) => {
                             handleError(error);
@@ -247,24 +216,13 @@ const Index: FC = () => {
                             Letzte Änderungen
                             <br />
                         </Typography>
-                        {lastItems.length > 0 ? (
-                            <DataTableInventory
-                                items={lastItems}
-                                setItems={setLastItems}
-                                activeAndNotDroppedItems={lastItems}
-                                activeAndNotActiveAndNotDroppedItems={lastItems}
-                                activeAndDroppedAndNotDroppedItems={lastItems}
-                                allItems={lastItems}
-                                showSwitchSearchBarAndLegend={false}
-                            />
-                        ) : (
-                            <Typography
-                                align="center"
-                                marginBottom="3em"
-                            >
-                                Es wurden noch keine Gegenstände erfasst.
-                            </Typography>
-                        )}
+                        <DataTableInventorySearchable
+                            showSwitchAndLegend={false}
+                            getSearchUrl={(search) => (admin || superAdmin) && checkedSwitch
+                                ? `${process.env.HOSTNAME}/api/inventorymanagement/chart/last_items/${search ? ("?search=*" + search + "*") : ""}`
+                                : `${process.env.HOSTNAME}/api/inventorymanagement/chart/last_items/department/${departmentId}${search ? ("?search=*" + search + "*") : ""}`
+                        }
+                        />
                         <Box sx={{ my: 4 }} />
                         <Typography
                             variant="h2"
