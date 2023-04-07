@@ -148,6 +148,7 @@ const Index: FC = () => {
                 <Grid item>
                     <Typography
                         variant="h1"
+                        id="dashboardHeader"
                         align="center"
                         gutterBottom
                     >

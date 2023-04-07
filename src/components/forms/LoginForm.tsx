@@ -160,6 +160,7 @@ const LoginForm: FC = () => {
                             >
                                 <Button
                                     type="submit"
+                                    id="loginButton"
                                     fullWidth
                                     style={{
                                         width: '22.5em',

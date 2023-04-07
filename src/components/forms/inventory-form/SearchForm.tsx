@@ -217,6 +217,7 @@ const QrScanningForm: FC<ISearchForm> = (props) => {
                 >
                     <Grid sx={{ flexGrow: 1, marginRight: '1em' }}>
                         <TextField
+                            id="searchInput"
                             label={
                                 <div
                                     style={{

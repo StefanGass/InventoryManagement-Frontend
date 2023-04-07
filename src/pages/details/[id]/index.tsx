@@ -143,6 +143,7 @@ const Details: FC = () => {
                 <Box sx={{ my: 1 }} />
                 <Typography
                     variant="h1"
+                    id="detailItemInternalNumberHeader"
                     sx={{ alignSelf: 'center', flexGrow: 1 }}
                 >
                     {inventoryItem.itemInternalNumber}
@@ -201,6 +202,7 @@ const Details: FC = () => {
             >
                 <Typography
                     variant="h1"
+                    id="detailItemInternalNumberHeader"
                     sx={{ alignSelf: 'center', flexGrow: 1 }}
                 >
                     {inventoryItem.itemInternalNumber}
@@ -261,6 +263,7 @@ const Details: FC = () => {
                         )}
                         <Typography
                             variant="h1"
+                            id="detailItemInternalNumberHeader"
                             sx={{
                                 alignSelf: 'center',
                                 flexGrow: 1,
@@ -288,6 +291,7 @@ const Details: FC = () => {
                                 />
                                 <Typography
                                     variant="h1"
+                                    id="detailItemInternalNumberHeader"
                                     sx={{ alignSelf: 'center', flexGrow: 1, marginLeft: '25px' }}
                                 >
                                     {inventoryItem.itemInternalNumber}
@@ -296,6 +300,7 @@ const Details: FC = () => {
                         ) : (
                             <Typography
                                 variant="h1"
+                                id="detailItemInternalNumberHeader"
                                 sx={{ alignSelf: 'center', flexGrow: 1 }}
                             >
                                 {inventoryItem.itemInternalNumber}
