@@ -10,6 +10,7 @@ import { darkGrey } from 'styles/theme';
 import { useRouter } from 'next/router';
 import styles from 'styles/DataTableInventory.module.scss';
 import SearchForm from 'components/forms/inventory-form/SearchForm';
+import LoadingSpinner from "components/layout/LoadingSpinner";
 
 const getColour = (param: string) => {
     switch (param) {
@@ -67,12 +68,10 @@ const columns: GridColDef[] = [
 const DataTableInventory: FC<IDataTableInventory> = (props) => {
     const {
         items,
-        setItems,
-        activeAndNotDroppedItems,
-        activeAndNotActiveAndNotDroppedItems,
-        activeAndDroppedAndNotDroppedItems,
-        allItems,
-        showSwitchSearchBarAndLegend
+        setSearch,
+        showSearchBar,
+        showSwitchAndLegend,
+        searching
     } = props;
 
     const [checkedDropped, setStateDropped] = useState(false);
@@ -81,36 +80,10 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
 
     const handleChangeDroppedItems = (event: { target: { checked: boolean | ((prevState: boolean) => boolean) } }) => {
         setStateDropped(event.target.checked);
-        if (event.target.checked) {
-            if (checkedInactive) {
-                setItems(allItems);
-            } else {
-                setItems(activeAndDroppedAndNotDroppedItems);
-            }
-        } else {
-            if (checkedInactive) {
-                setItems(activeAndNotActiveAndNotDroppedItems);
-            } else {
-                setItems(activeAndNotDroppedItems);
-            }
-        }
     };
 
     const handleChangeInactiveItems = (event: { target: { checked: boolean | ((prevState: boolean) => boolean) } }) => {
         setStateInactive(event.target.checked);
-        if (event.target.checked) {
-            if (checkedDropped) {
-                setItems(allItems);
-            } else {
-                setItems(activeAndNotActiveAndNotDroppedItems);
-            }
-        } else {
-            if (checkedDropped) {
-                setItems(activeAndDroppedAndNotDroppedItems);
-            } else {
-                setItems(activeAndNotDroppedItems);
-            }
-        }
     };
 
     return (
@@ -119,7 +92,7 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
             width="95%"
             margin="auto"
         >
-            {showSwitchSearchBarAndLegend && (
+            {showSwitchAndLegend && (
                 <Grid>
                     <FormGroup>
                         <FormControlLabel
@@ -146,82 +119,98 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
                     <Box sx={{ my: 2 }} />
                 </Grid>
             )}
-            {showSwitchSearchBarAndLegend && (
+            {showSearchBar && (
                 <>
-                    <SearchForm />
+                    <SearchForm setSearch={setSearch} items={items} />
                     <Box sx={{ my: 2 }} />
                 </>
             )}
-            <div style={items.length < 15 ? { height: 'auto' } : { height: 700 }}>
-                <DataGrid
-                    rows={items.map((item: IInventoryItem) => ({
-                        id: item.id,
-                        itemInternalNumber: item.itemInternalNumber,
-                        category: item.type?.category?.categoryName,
-                        type: item.type?.typeName,
-                        itemName: item.itemName,
-                        status: item.active ? item.status : CommonConstants.INAKTIV,
-                        location: item.location?.locationName,
-                        pieces: item.pieces,
-                        piecesStoredIssuedDropped: `${item.piecesStored} / ${item.piecesIssued} / ${item.piecesDropped}`,
-                        oldItemNumber: item.oldItemNumber,
-                        serialNumber: item.serialNumber,
-                        deliveryDate: item.deliveryDate
-                            ? `${new Date(item.deliveryDate)
-                                  .toLocaleDateString('en-GB', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit'
-                                  })
-                                  .replaceAll('/', '.')}`
-                            : null,
-                        issueDate: item.issueDate
-                            ? `${new Date(item.issueDate)
-                                  .toLocaleDateString('en-GB', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit'
-                                  })
-                                  .replaceAll('/', '.')}`
-                            : null,
-                        issuedTo: item.issuedTo,
-                        droppingDate: item.droppingDate
-                            ? `${new Date(item.droppingDate)
-                                  .toLocaleDateString('en-GB', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit'
-                                  })
-                                  .replaceAll('/', '.')}`
-                            : null,
-                        supplier: item.supplier?.supplierName,
-                        department: item.department?.departmentName,
-                        lastChangedDate: item.lastChangedDate
-                            ? `${new Date(item.lastChangedDate)
-                                  .toLocaleDateString('en-GB', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                      second: '2-digit'
-                                  })
-                                  .replaceAll('/', '.')}`
-                            : null,
-                        active: item.active
-                    }))}
-                    autoHeight={items.length < 15}
-                    density="compact"
-                    columns={columns}
-                    pageSize={100}
-                    rowsPerPageOptions={[100]}
-                    hideFooterSelectedRowCount
-                    components={{ Toolbar: GridToolbar }}
-                    onRowClick={(params) => router.push(`/details/${params.id}`)}
-                    className={styles.hover}
-                />
+            <div style={items.length < 15 ? { height: 'auto', filter: searching?'blur(3px)':'' } : { height: 700,filter: searching?'blur(3px)':'' }}>
+                <div style={{position:"relative"}}>
+                        {searching? (
+                            <div style={{position:"absolute",top:0,left:0,
+                                height: '100%',width:'100%' }}>
+                                <LoadingSpinner></LoadingSpinner>
+                            </div>
+                        ):(<></>)}
+                    <DataGrid
+                        rows={items.filter(item => {
+                            if(showSwitchAndLegend && !checkedDropped && item.pieces === item.piecesDropped){
+                                return false;
+                            }else if(showSwitchAndLegend && !checkedInactive && !item.active){
+                                return false;
+                            }
+                            return true;
+                        } ).map((item: IInventoryItem) => ({
+                            id: item.id,
+                            itemInternalNumber: item.itemInternalNumber,
+                            category: item.type?.category?.categoryName,
+                            type: item.type?.typeName,
+                            itemName: item.itemName,
+                            status: item.active ? item.status : CommonConstants.INAKTIV,
+                            location: item.location?.locationName,
+                            pieces: item.pieces,
+                            piecesStoredIssuedDropped: `${item.piecesStored} / ${item.piecesIssued} / ${item.piecesDropped}`,
+                            oldItemNumber: item.oldItemNumber,
+                            serialNumber: item.serialNumber,
+                            deliveryDate: item.deliveryDate
+                                ? `${new Date(item.deliveryDate)
+                                    .toLocaleDateString('en-GB', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit'
+                                    })
+                                    .replaceAll('/', '.')}`
+                                : null,
+                            issueDate: item.issueDate
+                                ? `${new Date(item.issueDate)
+                                    .toLocaleDateString('en-GB', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit'
+                                    })
+                                    .replaceAll('/', '.')}`
+                                : null,
+                            issuedTo: item.issuedTo,
+                            droppingDate: item.droppingDate
+                                ? `${new Date(item.droppingDate)
+                                    .toLocaleDateString('en-GB', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit'
+                                    })
+                                    .replaceAll('/', '.')}`
+                                : null,
+                            supplier: item.supplier?.supplierName,
+                            department: item.department?.departmentName,
+                            lastChangedDate: item.lastChangedDate
+                                ? `${new Date(item.lastChangedDate)
+                                    .toLocaleDateString('en-GB', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        second: '2-digit'
+                                    })
+                                    .replaceAll('/', '.')}`
+                                : null,
+                            active: item.active
+                        }))}
+                        autoHeight={items.length < 15}
+                        density="compact"
+                        columns={columns}
+                        pageSize={100}
+                        rowsPerPageOptions={[100]}
+                        hideFooterSelectedRowCount
+                        components={{ Toolbar: GridToolbar }}
+                        onRowClick={(params) => router.push(`/details/${params.id}`)}
+                        className={styles.hover}
+                    />
+                </div>
+
             </div>
-            {showSwitchSearchBarAndLegend && (
+            {showSwitchAndLegend && (
                 <Typography
                     color={darkGrey}
                     marginTop="1em"
