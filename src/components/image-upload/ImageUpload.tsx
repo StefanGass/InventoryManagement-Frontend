@@ -42,7 +42,6 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
             await Promise.all(filePromises).then((res) => {
                 changeEvent.target.value = '';
                 setPictureList(pictureList.concat(res as IPictureUpload[]));
-                // setPictureList(res as IPictureUpload[]);
             });
         }
     };
