@@ -11,7 +11,7 @@ interface IImageUploadProps {
 }
 
 const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
-    const [pictureList, setPictureList] = useState<IPictureUpload[] | null>(null);
+    const [pictureList, setPictureList] = useState<IPictureUpload[]>([]);
     const { themeMode } = useContext(UserContext);
 
     useEffect(() => {
@@ -25,7 +25,6 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
 
     const transformPictures = async (changeEvent: ChangeEvent<HTMLInputElement>) => {
         if (changeEvent.target.files) {
-            setPictureList([]);
 
             const filePromises = Array.from(changeEvent.target.files).map((file) => {
                 return new Promise((resolve, reject) => {
@@ -42,7 +41,8 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
             });
             await Promise.all(filePromises).then((res) => {
                 changeEvent.target.value = '';
-                setPictureList(res as IPictureUpload[]);
+                setPictureList(pictureList.concat(res as IPictureUpload[]));
+                // setPictureList(res as IPictureUpload[]);
             });
         }
     };
