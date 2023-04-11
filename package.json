@@ -1,41 +1,43 @@
 {
-    "name": "inventory-management-frontend",
-    "author": "Stefan Gass; until release 22.06.1: Stefan Gass, Isabella Zaby",
-    "description": "In cooperation with the University of Applied Sciences Burgenland, department Information Technology",
-    "license": "MIT",
-    "version": "23.03.1",
-    "private": true,
-    "scripts": {
-        "dev": "next dev -p 3004",
-        "build": "next build",
-        "buildtest": "NODE_ENV=${NODE_ENV:=test} next build",
-        "start": "next start -p 3004",
-        "type-check": "tsc"
-    },
-    "dependencies": {
-        "@emotion/cache": "^11.10.5",
-        "@emotion/react": "^11.10.5",
-        "@emotion/server": "^11.10.0",
-        "@emotion/styled": "^11.10.5",
-        "@mui/icons-material": "^5.11.0",
-        "@mui/material": "^5.11.7",
-        "@mui/x-data-grid": "^5.17.21",
-        "@mui/x-date-pickers": "^5.0.16",
-        "base-64": "^1.0.0",
-        "date-fns": "^2.29.3",
-        "jsqr": "^1.4.0",
-        "next": "^13.1.6",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "qrcode.react": "^3.1.0",
-        "recharts": "2.3.2",
-        "signature_pad": "^4.1.4"
-    },
-    "devDependencies": {
-        "@types/node": "^18.11.18",
-        "@types/react": "^18.0.27",
-        "prettier": "2.8.3",
-        "sass": "^1.58.0",
-        "typescript": "^4.9.5"
-    }
+  "name": "inventory-management-frontend",
+  "author": "Stefan Gass; until release 22.06.1: Stefan Gass, Isabella Zaby",
+  "description": "In cooperation with the University of Applied Sciences Burgenland, department Information Technology",
+  "license": "MIT",
+  "version": "23.03.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3004",
+    "build": "next build",
+    "buildtest": "NODE_ENV=${NODE_ENV:=test} next build",
+    "start": "next start -p 3004",
+    "type-check": "tsc",
+    "testE2E": "npx playwright test"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.10.5",
+    "@emotion/react": "^11.10.5",
+    "@emotion/server": "^11.10.0",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/material": "^5.11.7",
+    "@mui/x-data-grid": "^5.17.21",
+    "@mui/x-date-pickers": "^5.0.16",
+    "base-64": "^1.0.0",
+    "date-fns": "^2.29.3",
+    "jsqr": "^1.4.0",
+    "next": "^13.1.6",
+    "qrcode.react": "^3.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "2.3.2",
+    "signature_pad": "^4.1.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.32.2",
+    "@types/node": "^18.11.18",
+    "@types/react": "^18.0.27",
+    "prettier": "2.8.3",
+    "sass": "^1.58.0",
+    "typescript": "^4.9.5"
+  }
 }

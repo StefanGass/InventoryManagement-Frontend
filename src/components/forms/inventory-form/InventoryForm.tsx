@@ -220,6 +220,7 @@ const InventoryForm: FC<IInventoryFormProps> = (props) => {
                                     variant="h1"
                                     align="center"
                                     gutterBottom
+                                    id="inventargegenstandErfassenHeader"
                                 >
                                     Inventargegenstand erfassen
                                 </Typography>

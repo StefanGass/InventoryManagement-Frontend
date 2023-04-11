@@ -17,6 +17,7 @@ const Inventar: FC = () => {
                         variant="h1"
                         align="center"
                         gutterBottom
+                        id="inventarHeader"
                     >
                         Inventarverzeichnis
                     </Typography>

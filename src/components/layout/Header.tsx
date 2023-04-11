@@ -106,6 +106,7 @@ const Header = () => {
                         <Link
                             href={link}
                             underline="none"
+                            id={"link"+ name}
                         >
                             <StyledTypographyDesktop
                                 style={{
