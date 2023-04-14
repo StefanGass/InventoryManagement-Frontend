@@ -56,7 +56,7 @@ const StyledIconButtonDrawer = styled(IconButton)({
 });
 
 const Header = () => {
-    const { login, setLogin,userId, setUserId, setFirstName, setLastName, setAdmin, setSuperAdmin, setAdminMode,
+    const { login, setLogin,departmentId, setUserId, setFirstName, setLastName, setAdmin, setSuperAdmin, setAdminMode,
         showDroppingQueue, droppingReviewer,setShowDroppingQueue,
         setDepartmentId, setDepartmentName, admin,adminMode,superAdmin, themeMode } =
         useContext(UserContext);
@@ -101,9 +101,11 @@ const Header = () => {
             request = inventoryManagementService.getAllDroppingQueueInventoryItems();
         } else {
             if(!droppingReviewer) return;
-            request = inventoryManagementService.getDroppingQueueInventoryItemsByDepartmentId(userId);
+            request = inventoryManagementService.getDroppingQueueInventoryItemsByDepartmentId(departmentId);
         }
-        request.then(x => setShowDroppingQueue(!!x.length));
+        request.then(x => {
+            setShowDroppingQueue(!!x.length);
+        }).catch(x => console.log(x));
     },[adminMode]);
 
     // desktop mode
@@ -144,14 +146,10 @@ const Header = () => {
                             marginTop: '4px'
                         }}
                     >
-                        <StyledTypographyDesktop
-                        >                        <Link
-                            href="/warteschlange"
-                            underline="none"
-                        >
-
-                            <FlagIcon fontSize='small' style={{ color: mainWhite }} />
-                        </Link>
+                        <StyledTypographyDesktop>
+                            <Link href="/warteschlange" underline="none" id="linkWarteschlange">
+                                <FlagIcon fontSize='small' style={{ color: mainWhite }} />
+                            </Link>
                         </StyledTypographyDesktop>
 
                     </div>

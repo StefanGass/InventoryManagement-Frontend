@@ -26,6 +26,7 @@ const AdminModeInformation: FC = () => {
                                 checked={adminMode}
                                 value={adminMode}
                                 disabled={true}
+                                id="adminModeSwitchInformation"
                             />
                         }
                         label={`${adminMode ? "Admin-Ansicht deaktivieren" : "Admin-Ansicht aktivieren"}`}

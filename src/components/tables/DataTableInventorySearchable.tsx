@@ -1,9 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { IDatatabeInventorySearchable, IInventoryItem } from "components/interfaces";
 import { usePrevious } from "utils/usePrevious";
 import DataTableInventory from "components/tables/DataTableInventory";
 import { Typography } from "@mui/material";
 import ErrorInformation from "components/layout/ErrorInformation";
+import { UserContext } from "pages/_app";
 
 
 const DataTableInventorySearchable: FC<IDatatabeInventorySearchable> = (props) => {
@@ -11,6 +12,7 @@ const DataTableInventorySearchable: FC<IDatatabeInventorySearchable> = (props) =
         getSearchUrl,
         showSwitchAndLegend
     } = props;
+    const { adminMode } = useContext(UserContext);
 
     const [items, setItems] = useState<IInventoryItem[]>([]);
     const [searching, setSearching] = useState(false);
@@ -19,9 +21,10 @@ const DataTableInventorySearchable: FC<IDatatabeInventorySearchable> = (props) =
     const [noData, setNoData] = useState(false);
     const [serverError, setServerError] = useState(false);
     const prevSearch = usePrevious(search);
+    const prevAdminMode = usePrevious(adminMode);
 
     useEffect(() => {
-        if (search != prevSearch) {
+        if (search != prevSearch || adminMode != prevAdminMode) {
             setSearching(true);
             searchItems();
         }
