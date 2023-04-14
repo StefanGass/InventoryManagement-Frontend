@@ -1,9 +1,9 @@
 import { FC, useEffect, useState } from "react";
 import { IDatatabeInventorySearchable, IInventoryItem } from "components/interfaces";
 import { usePrevious } from "utils/usePrevious";
-import CustomAlert from "components/form-fields/CustomAlert";
 import DataTableInventory from "components/tables/DataTableInventory";
 import { Typography } from "@mui/material";
+import ErrorInformation from "components/layout/ErrorInformation";
 
 
 const DataTableInventorySearchable: FC<IDatatabeInventorySearchable> = (props) => {
@@ -67,10 +67,7 @@ const DataTableInventorySearchable: FC<IDatatabeInventorySearchable> = (props) =
 
     return (<>
             {serverError ? (
-                <CustomAlert
-                    state="warning"
-                    message="Serverfehler - bitte kontaktiere die IT!"
-                />
+                <ErrorInformation></ErrorInformation>
             ) : noData ? (
                 <Typography
                     align="center"

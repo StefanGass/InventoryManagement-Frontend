@@ -18,6 +18,7 @@ import lightTheme, { darkGrey, darkTheme } from 'styles/theme';
 import HandoverForm from 'components/forms/inventory-form/HandoverForm';
 import QrCode from 'components/layout/QrCode';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import ErrorInformation from "components/layout/ErrorInformation";
 
 const Details: FC = () => {
     const router = useRouter();
@@ -132,10 +133,7 @@ const Details: FC = () => {
         );
     } else if (error) {
         return (
-            <CustomAlert
-                state="warning"
-                message="Serverfehler - bitte kontaktiere die IT!"
-            />
+            <ErrorInformation></ErrorInformation>
         );
     } else if (formError || updated || activationMessage) {
         return (

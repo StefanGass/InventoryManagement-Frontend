@@ -1,20 +1,34 @@
 import { FC, FormEvent, useContext, useState } from 'react';
 import { Box, Button, Container, Grid, TextField, Typography } from '@mui/material';
-import { IDepartment, IUser } from 'components/interfaces';
+import { IDepartment, IUser } from "components/interfaces";
 import { UserContext } from 'pages/_app';
 import { useRouter } from 'next/router';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import inventoryManagementService from "service/inventoryManagementService";
+import ErrorInformation from "components/layout/ErrorInformation";
 
 const base64 = require('base-64');
 
 const LoginForm: FC = () => {
-    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setAdmin, setSuperAdmin, setAdminMode, setDepartmentName } =
+    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setAdmin, setSuperAdmin, setAdminMode, setDepartmentName, setDroppingReviewer } =
         useContext(UserContext);
 
     const [loginError, setLoginError] = useState(false);
     const [serverError, setServerError] = useState(false);
     const router = useRouter();
 
+    const fetchDepartmentMember = (userId) => {
+        inventoryManagementService.getDepartmentMember(userId)
+            .then(m => {
+                setDroppingReviewer(m.droppingReviewer);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+            .finally(() => {
+                setLogin(true);
+            });
+    };
     const fetchDepartment = (userId) => {
         fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/user/${userId}`, {
             method: 'GET'
@@ -64,6 +78,7 @@ const LoginForm: FC = () => {
                                 setAdminMode(false);
                             }
                             fetchDepartment(result.id);
+                            fetchDepartmentMember(result.id);
                             if (!router.pathname.includes('[id]')) {
                                 // to force password saving prompt
                                 router.push(router.pathname);
@@ -146,10 +161,7 @@ const LoginForm: FC = () => {
                             />
                         )}
                         {serverError && (
-                            <CustomAlert
-                                state="warning"
-                                message="Serverfehler - bitte kontaktiere die IT!"
-                            />
+                            <ErrorInformation></ErrorInformation>
                         )}
                         <Grid>
                             <Grid

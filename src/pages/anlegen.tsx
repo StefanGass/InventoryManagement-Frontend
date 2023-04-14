@@ -6,7 +6,7 @@ import { ICategory, IObjectToSend } from 'components/interfaces';
 import ParameterForm from 'components/forms/ParameterForm';
 import ParameterFormDepartment from 'components/forms/ParameterFormDepartment';
 import { UserContext } from 'pages/_app';
-import CustomAlert from 'components/form-fields/CustomAlert';
+import ErrorInformation from "components/layout/ErrorInformation";
 
 const Anlegen: FC = () => {
     const { userId, admin, superAdmin } = useContext(UserContext);
@@ -153,10 +153,7 @@ const Anlegen: FC = () => {
                 {loading ? (
                     <LoadingSpinner />
                 ) : serverError ? (
-                    <CustomAlert
-                        state="warning"
-                        message="Serverfehler - bitte kontaktiere die IT!"
-                    />
+                    <ErrorInformation></ErrorInformation>
                 ) : (
                     <>
                         <ParameterForm

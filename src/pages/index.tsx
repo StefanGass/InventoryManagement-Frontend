@@ -10,9 +10,10 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import { Info } from "@mui/icons-material";
-import CustomAlert from "components/form-fields/CustomAlert";
 import lightTheme from "styles/theme";
 import DataTableInventorySearchable from "components/tables/DataTableInventorySearchable";
+import PageHeader from "components/layout/PageHeader";
+import ErrorInformation from "components/layout/ErrorInformation";
 
 const Index: FC = () => {
     const { admin, superAdmin, adminMode, setAdminMode, departmentId } = useContext(UserContext);
@@ -145,24 +146,11 @@ const Index: FC = () => {
     return (
         <Container maxWidth={false}>
             <Box sx={{ my: 12 }}>
-                <Grid item>
-                    <Typography
-                        variant="h1"
-                        id="dashboardHeader"
-                        align="center"
-                        gutterBottom
-                    >
-                        Dashboard
-                        <br />
-                    </Typography>
-                </Grid>
+                <PageHeader title="Dashboard" id="dashboardHeader"></PageHeader>
                 {loading ? (
                     <LoadingSpinner />
                 ) : serverError ? (
-                    <CustomAlert
-                        state="warning"
-                        message="Serverfehler - bitte kontaktiere die IT!"
-                    />
+                    <ErrorInformation></ErrorInformation>
                 ) : (
                     <Grid>
                         {(admin || superAdmin) && (

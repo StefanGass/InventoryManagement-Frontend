@@ -10,6 +10,7 @@ export interface IDepartmentMember {
     id: number;
     userId: number;
     department: IDepartment;
+    droppingReviewer: boolean;
 }
 
 export interface IDepartmentMemberConverted {
@@ -55,7 +56,7 @@ export interface IDataTableInventoryBase{
 export interface IDataTableInventory extends  IDataTableInventoryBase{
     setSearch:(search:string) => void
     showSearchBar?:boolean;
-    searching: boolean;
+    searching?: boolean;
     items: IInventoryItem[];
 }
 
@@ -66,6 +67,11 @@ export interface IDatatabeInventorySearchable extends  IDataTableInventoryBase{
 export interface ISearchForm {
     setSearch:(search:string) => void;
     items: IInventoryItem[];
+}
+
+export interface IPageHeader {
+    title: string;
+    id:string;
 }
 
 export interface IType {
@@ -160,6 +166,10 @@ export interface IUserContext {
     setDepartmentName: (val: string) => void;
     themeMode: 'light' | 'dark';
     setThemeMode: (val: 'light' | 'dark') => void;
+    droppingReviewer: boolean;
+    setDroppingReviewer: (val: boolean) => void;
+    showDroppingQueue: boolean;
+    setShowDroppingQueue: (val: boolean) => void;
 }
 
 export interface IChartItem {
@@ -177,4 +187,8 @@ export interface IChartItem {
     piecesManipulated: number;
     piecesActivated: number;
     piecesDeactivated: number;
+}
+
+export interface IHidden {
+    hidden?:boolean;
 }

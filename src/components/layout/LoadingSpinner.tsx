@@ -1,6 +1,12 @@
 import { Box, CircularProgress } from '@mui/material';
+import { IHidden } from "components/interfaces";
+import { FC } from "react";
 
-const LoadingSpinner = () => {
+const LoadingSpinner:FC<IHidden> = (props) => {
+    const {hidden} = props;
+    if(hidden){
+        return (<></>);
+    }
     return (
         <Box
             display="flex"
