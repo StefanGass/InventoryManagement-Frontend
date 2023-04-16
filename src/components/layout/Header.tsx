@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import {
@@ -18,11 +18,14 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
+import FlagIcon from '@mui/icons-material/Flag';
 import Link from 'components/layout/Link';
 import { routes } from 'utils/routes';
 import lightTheme, { darkGrey, errorRed, lightGrey, mainWhite } from 'styles/theme';
 import logo from 'public/pictures/logo.png';
 import { UserContext } from 'pages/_app';
+import inventoryManagementService from "service/inventoryManagementService";
+import { IInventoryItem } from "components/interfaces";
 
 const StyledTypographyDesktop = styled(Typography)({
     fontSize: '1.25em',
@@ -53,7 +56,9 @@ const StyledIconButtonDrawer = styled(IconButton)({
 });
 
 const Header = () => {
-    const { login, setLogin, setUserId, setFirstName, setLastName, setAdmin, setSuperAdmin, setAdminMode, setDepartmentId, setDepartmentName, themeMode } =
+    const { login, setLogin,departmentId, setUserId, setFirstName, setLastName, setAdmin, setSuperAdmin, setAdminMode,
+        showDroppingQueue, droppingReviewer,setShowDroppingQueue,
+        setDepartmentId, setDepartmentName, admin,adminMode,superAdmin, themeMode } =
         useContext(UserContext);
 
     const router = useRouter();
@@ -90,6 +95,19 @@ const Header = () => {
         }
     };
 
+    useEffect(() =>{
+        let request: Promise<IInventoryItem[]>;
+        if ((superAdmin || admin) && adminMode) {
+            request = inventoryManagementService.getAllDroppingQueueInventoryItems();
+        } else {
+            if(!droppingReviewer) return;
+            request = inventoryManagementService.getDroppingQueueInventoryItemsByDepartmentId(departmentId);
+        }
+        request.then(x => {
+            setShowDroppingQueue(!!x.length);
+        }).catch(x => console.log(x));
+    },[adminMode]);
+
     // desktop mode
     const tabs = (
         <>
@@ -98,7 +116,7 @@ const Header = () => {
                 justifyContent="flex-end"
                 spacing={4}
             >
-                {routes.map(({ name, link }) => (
+                {routes.filter(x => x.visibleMenu).map(({ name, link }) => (
                     <Grid
                         item
                         key={link}
@@ -119,6 +137,24 @@ const Header = () => {
                         </Link>
                     </Grid>
                 ))}
+                {showDroppingQueue? (<Grid item>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            marginTop: '4px'
+                        }}
+                    >
+                        <StyledTypographyDesktop>
+                            <Link href="/warteschlange" underline="none" id="linkWarteschlange">
+                                <FlagIcon fontSize='small' style={{ color: mainWhite }} />
+                            </Link>
+                        </StyledTypographyDesktop>
+
+                    </div>
+                </Grid>): (<></>)}
+
                 <Grid item>
                     <StyledLogoutButtonDesktop onClick={logoutClick}>
                         <div
@@ -157,7 +193,12 @@ const Header = () => {
                     role="presentation"
                 >
                     <List disablePadding>
-                        {routes.map(({ name, link }) => (
+                        {routes.filter(x => x.visibleHamburger).filter(x => {
+                            if(x.name === "Warteschlange") {
+                                return showDroppingQueue;
+                            }
+                            return true;
+                        }).map(({ name, link }) => (
                             <ListItemButton
                                 key={link}
                                 divider

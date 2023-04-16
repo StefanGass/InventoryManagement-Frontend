@@ -6,7 +6,7 @@ import { Alert, Box, Container, Stack } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import CustomButton from 'components/form-fields/CustomButton';
 import { UserContext } from 'pages/_app';
-import CustomAlert from 'components/form-fields/CustomAlert';
+import ErrorInformation from "components/layout/ErrorInformation";
 
 const Erfassen: FC = () => {
     const [type, setType] = useState<IType[] | JSON | null>(null);
@@ -89,10 +89,7 @@ const Erfassen: FC = () => {
         );
     } else if (error) {
         return (
-            <CustomAlert
-                state="warning"
-                message="Serverfehler - bitte kontaktiere die IT!"
-            />
+            <ErrorInformation></ErrorInformation>
         );
     } else if (formError) {
         return (
