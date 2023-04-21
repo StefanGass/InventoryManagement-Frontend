@@ -11,7 +11,6 @@ test.describe("Universale Suche Inventar", () => {
     test.beforeEach(async ({ page }) => {
         await loginAndNavigate(page, NavigationPage.inventar);
     });
-
     test("has Searchbar in Inventar", async ({ page }) => {
         await expect(page.locator(searchInputField)).toBeVisible();
     });
@@ -40,11 +39,9 @@ test.describe("Universale Suche Inventar", () => {
     });
     // Test is flacky -> nothing better found yet than timeout.
     test("open Detail after search", async ({ page }) => {
-        await page.waitForTimeout(1000);
         await fillInSearchField(page, "Computer");
-        await page.waitForTimeout(1000);
+        await expect(page.getByText("1–1 von 1")).toBeVisible();
         await page.locator(searchInputField).press("Enter");
-        await page.waitForTimeout(1000);
         await expect(page.locator("#detailItemInternalNumberHeader")).toBeVisible();
     });
 });
@@ -54,6 +51,7 @@ async function assertComputerVisible(page: Page) {
 }
 
 async function fillInSearchField(page: Page, text: string) {
+    await expect(await page.locator("#inventarHeader")).toBeVisible();
     const input = page.locator(searchInputField);
     await input.fill(text);
 }
