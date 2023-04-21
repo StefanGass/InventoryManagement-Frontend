@@ -1,26 +1,26 @@
 import { expect, test } from "@playwright/test";
-import { login, loginAndNavigate, NavigationPage, startPage } from "./navigationTestUtil";
+import { NavigationHelper, NavigationPage } from "./helper/navigationHelper";
 
 
-test("has title", async ({ page }) => {
-    await page.goto(startPage);
-    await expect(page).toHaveTitle("Inventory Management");
-});
+test.describe("Navigation", () => {
+    test("has title", async ({ page }) => {
+        await NavigationHelper.start(page);
+        await expect(page).toHaveTitle("Inventory Management");
+    });
 
-test("login and open Dashboard", async ({ page }) => {
-    await login(page);
-    await expect(await page.locator("#dashboardHeader")).toBeVisible();
+    test("login and open Dashboard", async ({ page }) => {
+        await NavigationHelper.login(page);
+    });
+    test("navigate Inventar", async ({ page }) => {
+        await NavigationHelper.loginAndNavigate(page, NavigationPage.inventar);
+    });
+    test("navigate Erfassen", async ({ page }) => {
+        await NavigationHelper.loginAndNavigate(page, NavigationPage.erfassen);
+    });
+    test("navigate Anlegen", async ({ page }) => {
+        await NavigationHelper.loginAndNavigate(page, NavigationPage.anlegen);
+    });
+    test("navigate Warteschlange", async ({ page }) => {
+        await NavigationHelper.loginAndNavigate(page, NavigationPage.warteschlange);
+    });
 });
-test("navigate Inventar", async ({ page }) => {
-    await loginAndNavigate(page,NavigationPage.inventar);
-    await expect(await page.locator("#inventarHeader")).toBeVisible();
-});
-test("navigate Erfassen", async ({ page }) => {
-    await loginAndNavigate(page,NavigationPage.erfassen);
-    await expect(await page.locator("#inventargegenstandErfassenHeader")).toBeVisible();
-});
-test("navigate Anlegen", async ({ page }) => {
-    await loginAndNavigate(page,NavigationPage.anlegen);
-    await expect(await page.locator("#parameterAnlegenHeader")).toBeVisible();
-});
-

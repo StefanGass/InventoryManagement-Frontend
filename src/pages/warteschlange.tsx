@@ -51,7 +51,7 @@ const Warteschlange: FC = () => {
         <Container maxWidth={false}>
             <Box sx={{ my: 12 }}>
                 <>
-                    <PageHeader title="Warteschlange" id="headerWarteschlange"></PageHeader>
+                    <PageHeader title="Warteschlange" id="warteschlangeHeader"></PageHeader>
                     <LoadingSpinner hidden={!loading}></LoadingSpinner>
                     <ErrorInformation hidden={!serverError}></ErrorInformation>
                     {getContent()}
