@@ -1,11 +1,14 @@
-import { FC, FormEvent, useContext, useState } from 'react';
-import { Box, Button, Container, Grid, TextField, Typography } from '@mui/material';
+import { FC, FormEvent, useContext, useEffect, useState } from 'react';
+import { Box, Button, Container, FormControlLabel, FormGroup, Grid, TextField, Typography } from '@mui/material';
 import { IDepartment, IUser } from "components/interfaces";
 import { UserContext } from 'pages/_app';
 import { useRouter } from 'next/router';
 import CustomAlert from 'components/form-fields/CustomAlert';
 import inventoryManagementService from "service/inventoryManagementService";
+import userManagementService from "service/userManagementService";
 import ErrorInformation from "components/layout/ErrorInformation";
+import Switch from "@mui/material/Switch";
+import Cookies from 'js-cookie';
 
 const base64 = require('base-64');
 
@@ -14,10 +17,46 @@ const LoginForm: FC = () => {
         useContext(UserContext);
 
     const [loginError, setLoginError] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [serverError, setServerError] = useState(false);
     const router = useRouter();
 
-    const fetchDepartmentMember = (userId) => {
+    useEffect(() => {
+        const rememberMe = Cookies.get("rememberMe");
+        if (rememberMe) {
+            fetchUser(rememberMe);
+        } else {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchUser = (encodedUsername: string) => {
+        userManagementService.getUser(encodedUsername)
+            .then((result: IUser) => {
+                setUserId(result.id);
+                setFirstName(result.firstName);
+                setLastName(result.lastName);
+                setAdmin(result.admin);
+                setSuperAdmin(result.superAdmin);
+                if (result.admin || result.superAdmin) {
+                    setAdminMode(true);
+                } else {
+                    setAdminMode(false);
+                }
+                fetchDepartment(result.id);
+                fetchDepartmentMember(result.id);
+                if (!router.pathname.includes('[id]')) {
+                    // to force password saving prompt
+                    router.push(router.pathname);
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+                setServerError(true);
+            });
+    }
+
+    const fetchDepartmentMember = (userId: number) => {
         inventoryManagementService.getDepartmentMember(userId)
             .then(m => {
                 setDroppingReviewer(m.droppingReviewer);
@@ -27,13 +66,11 @@ const LoginForm: FC = () => {
             })
             .finally(() => {
                 setLogin(true);
+                setLoading(false);
             });
     };
-    const fetchDepartment = (userId) => {
-        fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/user/${userId}`, {
-            method: 'GET'
-        })
-            .then((res) => res.json())
+    const fetchDepartment = (userId: number) => {
+        inventoryManagementService.getDepartmentOfUser(userId)
             .then((result: IDepartment) => {
                 if (result.id && result.departmentName) {
                     setDepartmentId(result.id);
@@ -45,14 +82,19 @@ const LoginForm: FC = () => {
             })
             .finally(() => {
                 setLogin(true);
+                setLoading(false);
             });
     };
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
+        const username = String(data.get('username'));
+        const angemeldetBleiben = Boolean(data.get('angemeldetBleiben'));
+        const base64Token = base64.encode(username + ':' + String(data.get('password')));
+        const usernameEncoded = base64.encode(username.replace(/ /g, '_'));
         let headers = new Headers();
-        headers.append('Authorization', 'Basic ' + base64.encode(String(data.get('username')) + ':' + String(data.get('password'))));
+        headers.append('Authorization', 'Basic ' + base64Token);
         // to prevent authentication pop-up window
         headers.append('X-Requested-With', 'XMLHttpRequest');
         setLoginError(false);
@@ -63,31 +105,11 @@ const LoginForm: FC = () => {
         })
             .then((response) => {
                 if (response.ok) {
+                    if (angemeldetBleiben) {
+                        Cookies.set("rememberMe", usernameEncoded, {expires: 1});
+                    }
                     // match the user with the database
-                    fetch(`${process.env.HOSTNAME}/api/usermanagement/user/${base64.encode(String(data.get('username')).replace(/ /g, '_'))}`)
-                        .then((res) => res.json())
-                        .then((result: IUser) => {
-                            setUserId(result.id);
-                            setFirstName(result.firstName);
-                            setLastName(result.lastName);
-                            setAdmin(result.admin);
-                            setSuperAdmin(result.superAdmin);
-                            if (result.admin || result.superAdmin) {
-                                setAdminMode(true);
-                            } else {
-                                setAdminMode(false);
-                            }
-                            fetchDepartment(result.id);
-                            fetchDepartmentMember(result.id);
-                            if (!router.pathname.includes('[id]')) {
-                                // to force password saving prompt
-                                router.push(router.pathname);
-                            }
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            setServerError(true);
-                        });
+                    fetchUser(usernameEncoded);
                 } else {
                     console.log('Wrong credentials');
                     setLoginError(true);
@@ -99,8 +121,10 @@ const LoginForm: FC = () => {
             });
     };
 
-    return (
-        <Container maxWidth="sm">
+    if (loading) {
+        return (<div />);
+    } else {
+        return (<Container maxWidth="sm">
             <Box sx={{ my: 12 }}>
                 <Typography
                     variant="h1"
@@ -154,6 +178,20 @@ const LoginForm: FC = () => {
                                 error={loginError}
                             />
                         </Grid>
+                        <Grid>
+                            <FormGroup>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            
+                                            name="angemeldetBleiben"
+                                            id="angemeldetBleiben"
+                                        />
+                                    }
+                                    label='Angemeldet bleiben?'
+                                />
+                            </FormGroup>
+                        </Grid>
                         {loginError && (
                             <CustomAlert
                                 state="error"
@@ -189,7 +227,8 @@ const LoginForm: FC = () => {
                 </Grid>
             </Box>
         </Container>
-    );
+        );
+    }
 };
 
 export default LoginForm;
