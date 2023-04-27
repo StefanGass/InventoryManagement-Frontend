@@ -22,6 +22,13 @@ const LoginForm: FC = () => {
     const router = useRouter();
 
     useEffect(() => {
+        inventoryManagementService.getRememberMeCookieConfig().then(c => {
+            // this.rememberMeCookieConfig = c;
+            console.log(c);
+        });
+    }, [])
+
+    useEffect(() => {
         const rememberMe = Cookies.get("rememberMe");
         if (rememberMe) {
             fetchUser(rememberMe);
