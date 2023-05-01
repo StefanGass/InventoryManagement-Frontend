@@ -8,6 +8,8 @@ import useIsFirstRender from 'hooks/useIsFirstRender';
 import useFormValidation from 'hooks/useFormValidation';
 import DepartmentUserTableForm from 'components/forms/DepartmentUserTableForm';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import userManagementService from "service/userManagementService";
+import inventoryManagementService from "service/inventoryManagementService";
 
 interface IPropertyFormDepartment {
     userId: number;
@@ -66,31 +68,12 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
     }, [form.department]);
 
     useEffect(() => {
-        fetch(`${process.env.HOSTNAME}/api/usermanagement/admin/${userId}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        }).then((response) => {
-            if (response.ok) {
-                response
-                    .json()
-                    .then((result: IUser[]) => {
-                        let userList: IDepartmentMemberConverted[] = [];
-                        result.map((user) => {
-                            userList.push({
-                                id: user.id,
-                                name: user.lastName + ' ' + user.firstName
-                            });
-                        });
-                        setAllUserList(result);
-                        setUsersToChooseFrom(userList);
-                        setLoading(false);
-                    })
-                    .catch(() => {
-                        handleError();
-                    });
-            } else {
-                handleError();
-            }
+        userManagementService.getAllUsers(userId).then(result => {
+            setAllUserList(result);
+            setUsersToChooseFrom(userManagementService.convertUserToDepartmentMemberConverted(result));
+            setLoading(false);
+        }).catch(() => {
+            handleError();
         });
     }, []);
 
@@ -254,6 +237,8 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                             fetchAndMergeChosenDepartmentWithUserList={fetchAndMergeChosenDepartmentWithUserList}
                             setIsSend={setIsSend}
                             handleError={handleError}
+                            getRemoveCall={(department, member) =>
+                                inventoryManagementService.deleteDepartmentMember(department,member)}
                         />
                     </Grid>
                 )}
