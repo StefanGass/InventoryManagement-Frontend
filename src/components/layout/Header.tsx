@@ -26,6 +26,7 @@ import logo from 'public/pictures/logo.png';
 import { UserContext } from 'pages/_app';
 import inventoryManagementService from "service/inventoryManagementService";
 import { IInventoryItem } from "components/interfaces";
+import Cookies from 'js-cookie';
 
 const StyledTypographyDesktop = styled(Typography)({
     fontSize: '1.25em',
@@ -65,6 +66,7 @@ const Header = () => {
     const matches = useMediaQuery(lightTheme.breakpoints.down('md'));
 
     const logoutClick = () => {
+        Cookies.remove("rememberMe");
         setOpenDrawer(false);
         if (setLogin) {
             setLogin(false);
@@ -156,7 +158,7 @@ const Header = () => {
                 </Grid>): (<></>)}
 
                 <Grid item>
-                    <StyledLogoutButtonDesktop onClick={logoutClick}>
+                    <StyledLogoutButtonDesktop onClick={logoutClick} id="abmeldenButton">
                         <div
                             style={{
                                 display: 'flex',
