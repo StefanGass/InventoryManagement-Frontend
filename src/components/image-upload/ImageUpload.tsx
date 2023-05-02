@@ -135,8 +135,6 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
         }
     };
 
-
-
     return (
         <Box sx={{ display: 'flex', flexFlow: 'column wrap', width: '100%', alignItems: 'center' }}>
             <Grid sx={{ cursor: `${disabled ? 'not-allowed' : 'pointer'}` }}>
