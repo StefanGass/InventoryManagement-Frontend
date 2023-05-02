@@ -193,3 +193,8 @@ export interface IChartItem {
 export interface IHidden {
     hidden?:boolean;
 }
+
+export interface IRememberMeCookieConfig {
+    id: number;
+    daysUntilExpiration: number;
+}

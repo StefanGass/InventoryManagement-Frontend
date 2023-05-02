@@ -21,6 +21,12 @@ export function get(url: string) {
     return checkIfOk(fetch(url));
 }
 
+export function getWithHeaders(url: string, headers: Headers) {
+    return checkIfOk(fetch(url, {
+        method: 'GET',
+        headers: headers
+    }));
+}
 
 function checkIfOk(promise: Promise<Response>) {
     return promise.then(res => {

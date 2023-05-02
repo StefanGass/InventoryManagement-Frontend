@@ -1,9 +1,10 @@
-import { IDepartment, IDepartmentMember, IInventoryItem } from "components/interfaces";
+import { IDepartment, IDepartmentMember, IInventoryItem, IRememberMeCookieConfig } from "components/interfaces";
 import { deleteRequest, getJson, patch } from "service/baseService";
 import { GridRowId } from "@mui/x-data-grid";
 
 
 const basePath = `${process.env.HOSTNAME}/api/inventorymanagement`;
+
 
 function getDepartmentMember(userId: number): Promise<IDepartmentMember> {
     return getJson<IDepartmentMember>(`${basePath}/department/member/${userId}`);
@@ -32,6 +33,10 @@ function deleteDepartmentMember(department:IDepartment,row : GridRowId){
     return deleteRequest(`${process.env.HOSTNAME}/api/inventorymanagement/department/member/` + department.id,row);
 }
 
+function getRememberMeCookieConfig(): Promise<IRememberMeCookieConfig> {
+    return getJson<IRememberMeCookieConfig>(`${basePath}/remembermecookieconfig`);
+}
+
 export default {
     getDepartmentMember,
     getAllDroppingQueueInventoryItems,
@@ -39,5 +44,6 @@ export default {
     getAllDepartments,
     deleteDepartmentMember,
     updateReviewer,
-    getDepartmentOfUser
+    getDepartmentOfUser,
+    getRememberMeCookieConfig
 };
