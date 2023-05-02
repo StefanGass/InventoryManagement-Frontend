@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import CustomAlert from 'components/form-fields/CustomAlert';
 import inventoryManagementService from "service/inventoryManagementService";
 import userManagementService from "service/userManagementService";
+import userControlService from "service/userControlService";
 import ErrorInformation from "components/layout/ErrorInformation";
 import Switch from "@mui/material/Switch";
 import Cookies from 'js-cookie';
@@ -19,12 +20,12 @@ const LoginForm: FC = () => {
     const [loginError, setLoginError] = useState(false);
     const [loading, setLoading] = useState(true);
     const [serverError, setServerError] = useState(false);
+    const [rememberMeCookieDaysUntilExpiration, setRememberMeCookieDaysUntilExpiration] = useState(1);
     const router = useRouter();
 
     useEffect(() => {
         inventoryManagementService.getRememberMeCookieConfig().then(c => {
-            // this.rememberMeCookieConfig = c;
-            console.log(c);
+            setRememberMeCookieDaysUntilExpiration(c.daysUntilExpiration);
         });
     }, [])
 
@@ -106,14 +107,11 @@ const LoginForm: FC = () => {
         headers.append('X-Requested-With', 'XMLHttpRequest');
         setLoginError(false);
         setServerError(false);
-        fetch(`${process.env.HOSTNAME}/api/usercontrol`, {
-            method: 'GET',
-            headers: headers
-        })
+        userControlService.checkUser(headers)
             .then((response) => {
                 if (response.ok) {
                     if (angemeldetBleiben) {
-                        Cookies.set("rememberMe", usernameEncoded, {expires: 1});
+                        Cookies.set("rememberMe", usernameEncoded, { expires: rememberMeCookieDaysUntilExpiration });
                     }
                     // match the user with the database
                     fetchUser(usernameEncoded);
@@ -190,7 +188,7 @@ const LoginForm: FC = () => {
                                 <FormControlLabel
                                     control={
                                         <Switch
-                                            
+
                                             name="angemeldetBleiben"
                                             id="angemeldetBleiben"
                                         />
@@ -225,6 +223,7 @@ const LoginForm: FC = () => {
                                     }}
                                     variant="contained"
                                     sx={{ mt: 3, mb: 2 }}
+                                    data-testid="loginButton"
                                 >
                                     Anmelden
                                 </Button>
