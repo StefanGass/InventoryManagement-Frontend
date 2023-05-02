@@ -12,6 +12,7 @@ import CustomButton from 'components/form-fields/CustomButton';
 import DataTablePrinter from 'components/tables/DataTablePrinter';
 import { UserContext } from 'pages/_app';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import ParameterDroppingReviewer from "components/forms/ParameterDroppingReviewer";
 
 interface IPropertyForm {
     parameter: number | null;
@@ -141,6 +142,8 @@ const ParameterForm: FC<IPropertyForm> = (props) => {
                 return <DataTableSupplier supplierList={tableList as ISupplier[]} />;
             case 6:
                 return <DataTablePrinter printerList={tableList as IPrinter[]} />;
+            case 7:
+                return <ParameterDroppingReviewer />;
             default:
                 return null;
         }

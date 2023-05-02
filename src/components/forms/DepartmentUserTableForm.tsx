@@ -8,15 +8,16 @@ import { FC, MouseEvent, useEffect, useState } from 'react';
 import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IDepartmentUserTable {
-    department: IDepartment;
+    department?: IDepartment;
     userList: IDepartmentMemberConverted[];
     fetchAndMergeChosenDepartmentWithUserList: () => void;
+    getRemoveCall: (department:IDepartment ,member:GridRowId) => Promise<any>;
     setIsSend: (bool: boolean) => void;
     handleError: () => void;
 }
 
 const DepartmentUserTableForm: FC<IDepartmentUserTable> = (props) => {
-    const { userList, fetchAndMergeChosenDepartmentWithUserList, department, setIsSend, handleError } = props;
+    const { userList, fetchAndMergeChosenDepartmentWithUserList, department, setIsSend, handleError,getRemoveCall } = props;
     const [selectionModelDelete, setSelectionModelDelete] = useState<GridRowId[]>([]);
     const [deleteMemberInputEmptyAlert, setDeleteMemberInputEmptyAlert] = useState(false);
     const [deleteMemberSuccessfulAlert, setDeleteMemberSuccessfulAlert] = useState(false);
@@ -37,19 +38,11 @@ const DepartmentUserTableForm: FC<IDepartmentUserTable> = (props) => {
         setDeleteMemberInputEmptyAlert(false);
         if (department && selectionModelDelete.length > 0) {
             selectionModelDelete.forEach((model) => {
-                fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/member/` + department.id, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(model)
-                })
+                getRemoveCall(department,model)
                     .then((response) => {
-                        if (response.ok) {
                             fetchAndMergeChosenDepartmentWithUserList();
                             setDeleteMemberSuccessfulAlert(true);
                             setIsSend(false);
-                        } else {
-                            handleError();
-                        }
                     })
                     .catch(() => {
                         handleError();
@@ -94,6 +87,7 @@ const DepartmentUserTableForm: FC<IDepartmentUserTable> = (props) => {
                 <CustomButton
                     onClick={onDeleteMemberButtonClick}
                     label="Entfernen"
+                    id="entfernenButton"
                     symbol={<Remove />}
                 />
             </Grid>

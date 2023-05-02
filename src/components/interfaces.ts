@@ -100,6 +100,7 @@ export interface ISupplier {
 export interface IDepartment {
     id: number;
     departmentName: string;
+    departmentMembers?: IDepartmentMember[]
 }
 
 export interface IObjectToSend {
