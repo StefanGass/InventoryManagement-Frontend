@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 //import { loginAndNavigate, NavigationPage } from "./navigationTestUtil";
 import {NavigationHelper, NavigationPage} from "./helper/navigationHelper";
 
@@ -20,14 +20,13 @@ test.describe("Kamera Upload", () => {
         await page.keyboard.press('ArrowDown');
         await page.keyboard.press('Enter');
 
-
-
-
-        //await expect(page.getByLabel("Typ")).toBeVisible();
-        //await expect(page.getByLabel("Beschreibung")).toBeVisible();
-        //await page.getByLabel("Beschreibung").fill("asdf");
+        //await page.getByLabel("Erfassen").click();
+        await page.locator("#btn_Erfassen").click();
+        await expect(page.getByText("Folgender Gegenstand wurde dem Inventar hinzugefügt:")).toBeVisible();
 
     });
+
+
 
 
 });
