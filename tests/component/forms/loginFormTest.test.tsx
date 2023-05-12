@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import LoginForm from "components/forms/LoginForm";
-import { IRememberMeCookieConfig } from "components/interfaces";
+import { IConfiguration } from "components/interfaces";
 import inventoryManagementService from "service/inventoryManagementService";
 import userControlService from "service/userControlService";
 import userEvent from "@testing-library/user-event";
@@ -40,9 +40,9 @@ describe("LoginForm", () => {
 });
 
 function createServiceSpy() {
-    const remembermecookieconfig: IRememberMeCookieConfig = {
+    const remembermecookieconfig: IConfiguration = {
         id: 1,
-        daysUntilExpiration: 3
+        rememberMeCookieDaysUntilExpiration: 3
     }
     jest.spyOn(inventoryManagementService, "getRememberMeCookieConfig")
         .mockReturnValue(new Promise(resolve => {

@@ -194,7 +194,7 @@ export interface IHidden {
     hidden?:boolean;
 }
 
-export interface IRememberMeCookieConfig {
+export interface IConfiguration {
     id: number;
-    daysUntilExpiration: number;
+    rememberMeCookieDaysUntilExpiration: number;
 }

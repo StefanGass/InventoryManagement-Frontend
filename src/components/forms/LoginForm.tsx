@@ -25,7 +25,7 @@ const LoginForm: FC = () => {
 
     useEffect(() => {
         inventoryManagementService.getRememberMeCookieConfig().then(c => {
-            setRememberMeCookieDaysUntilExpiration(c.daysUntilExpiration);
+            setRememberMeCookieDaysUntilExpiration(c.rememberMeCookieDaysUntilExpiration);
         });
     }, [])
 
