@@ -34,8 +34,8 @@ describe("ParameterDroppingReviewer", () => {
         await waitFor(() => expect(screen.queryByText("User:in erfolgreich hinzugefügt!")).toBeVisible());
     });
     it("display user with department name ", async () => {
-        department.departmentMembers[0].droppingReviewer=true;
-        const dom = await renderComponent();
+        if(department.departmentMembers) department.departmentMembers[0].droppingReviewer=true;
+        await renderComponent();
         await waitFor(() => expect(screen.queryByText("Muster Max (Testdepartment)")).toBeVisible());
     });
 });

@@ -1,3 +1,5 @@
+import { GridRowId } from "@mui/x-data-grid";
+
 export interface IUser {
     id: number;
     firstName: string;
@@ -37,6 +39,7 @@ export interface IInventoryItem {
     issueDate?: string | null;
     issuedTo?: string;
     droppingDate?: string | null;
+    droppingQueue?: string;
     status: string;
     department?: IDepartment;
     lastChangedDate?: string | null;
@@ -49,6 +52,10 @@ export interface IDetailInventoryItem extends IInventoryItem {
     comments?: string;
     pictures?: IPicture[];
     change?: IChange[];
+    droppingQueuePieces?: number;
+    droppingQueueRequester?: number;
+    droppingQueueReason?: string;
+    droppingQueueDate?: string;
 }
 
 export interface IDataTableInventoryBase{
@@ -59,6 +66,9 @@ export interface IDataTableInventory extends  IDataTableInventoryBase{
     showSearchBar?:boolean;
     searching?: boolean;
     items: IInventoryItem[];
+    includeDroppingInformation?:boolean;
+    selectionModel?: GridRowId[];
+    setSelectionModel?: (val: GridRowId[]) => void;
 }
 
 export interface IDatatabeInventorySearchable extends  IDataTableInventoryBase{

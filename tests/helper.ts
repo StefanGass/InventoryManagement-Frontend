@@ -1,4 +1,4 @@
-import { IInventoryItem, IUserContext } from "components/interfaces";
+import { IDetailInventoryItem, IUserContext } from "components/interfaces";
 
 
 export function getTestUserContext():IUserContext{
@@ -32,12 +32,13 @@ export function getTestUserContext():IUserContext{
     }
 }
 
-export function getTestInventoryItemComputer():IInventoryItem{
+export function getTestInventoryItemComputer():IDetailInventoryItem{
     return {
         id: 1,
         itemInternalNumber:"TEST-2023-0001",
         itemName: "Computer",
         serialNumber: "1",
+        pieces:1,
         piecesStored: 1,
         piecesIssued: 0,
         piecesDropped: 0,

@@ -19,6 +19,7 @@ import HandoverForm from 'components/forms/inventory-form/HandoverForm';
 import QrCode from 'components/layout/QrCode';
 import CustomAlert from 'components/form-fields/CustomAlert';
 import ErrorInformation from "components/layout/ErrorInformation";
+import inventoryManagementService from "service/inventoryManagementService";
 
 const Details: FC = () => {
     const router = useRouter();
@@ -101,11 +102,8 @@ const Details: FC = () => {
 
     const onFormSent = async (inventoryForm: IDetailInventoryItem) => {
         setLoading(true);
-        await fetch(`${process.env.HOSTNAME}/api/inventorymanagement/inventory/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...inventoryForm, userName: `${firstName} ${lastName}` })
-        }).then((response) => {
+        inventoryManagementService.updateInventoryItem({ ...inventoryForm, userName: `${firstName} ${lastName}` })
+            .then((response) => {
             if (response.ok) {
                 setUpdated(true);
             } else {
@@ -422,6 +420,7 @@ const Details: FC = () => {
                     setFormError={setFormError}
                     setUpdated={setUpdated}
                     setActivationMessage={setActivationMessage}
+                    onFormSent={onFormSent}
                 />
                 <CustomDivider />
                 {inventoryItem?.change && <DataTableChange changeList={inventoryItem.change} />}

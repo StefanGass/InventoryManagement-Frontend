@@ -16,10 +16,11 @@ interface IDatePicker {
     value?: string | null;
     disabled?: boolean;
     required?: boolean;
+    id?:string;
 }
 
 const CustomDatePicker: FC<IDatePicker> = (props) => {
-    const { label, setValue, error = false, value, disabled, required } = props;
+    const { label, setValue, error = false, value, disabled, required,id } = props;
     const { themeMode } = useContext(UserContext);
     const [date, setDate] = useState<Date | null>(value ? new Date(value) : null);
 
@@ -65,6 +66,7 @@ const CustomDatePicker: FC<IDatePicker> = (props) => {
                             value={date}
                             disabled={disabled}
                             required={required}
+                            id={id}
                             sx={{
                                 m: 1,
                                 width: '30ch',
