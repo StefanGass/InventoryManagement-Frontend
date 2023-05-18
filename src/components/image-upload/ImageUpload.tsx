@@ -22,7 +22,6 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
     const [isShowPlaceholderIcon, setIsShowPlaceholderIcon] = useState(true);
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraSettings, setCameraSettings] = useState<MediaTrackSettings | null>(null);
-
     const matches = useMediaQuery(lightTheme.breakpoints.down('md'));
 
     const transformPictures = async (changeEvent: ChangeEvent<HTMLInputElement>) => {
@@ -64,9 +63,9 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
         }
     };
 
-    const startCamera = (visibile: boolean) => {
+    const startCamera = (visible: boolean) => {
         try {
-            setIsCameraActive(visibile);
+            setIsCameraActive(visible);
             setNoCameraAvailableError(false);
             if (navigator?.mediaDevices) {
                 if (cameraVideo?.current) {
@@ -84,7 +83,7 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
                                 setCameraSettings(stream.getVideoTracks()[0].getSettings());
                                 cameraVideo.current.srcObject = stream;
                                 cameraVideo.current.setAttribute('playsinline', 'playsinline'); // required to tell iOS safari we don't want fullscreen
-                                if (visibile) {
+                                if (visible) {
                                     cameraVideo.current.scrollIntoView({
                                         behavior: 'smooth',
                                         block: 'center',
@@ -145,6 +144,7 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
                 }}
             >
                 <Button
+                    id="dateienHochladen"
                     variant="contained"
                     component="label"
                     color="secondary"
@@ -174,6 +174,8 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
                 <Tooltip title={noCameraAvailableError ? 'Kamera nicht verfügbar.' : null}>
                     <div style={{ cursor: `${noCameraAvailableError ? 'not-allowed' : 'pointer'}` }} /* necessary to show tooltip */>
                         <Button
+                            data-testid="kameraButton"
+                            id="kameraButton"
                             variant="contained"
                             component="label"
                             color="secondary"
@@ -187,8 +189,7 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
                                     color: `${themeMode === 'dark' ? mainWhite : mainBlack}`,
                                     backgroundColor: 'initial',
                                     border: `1px solid ${themeMode === 'dark' ? mainWhite : mainBlack}`
-                                }
-                            }}
+                                }}}
                             disabled={noCameraAvailableError}
                         >
                             <CameraAlt />
@@ -210,6 +211,8 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
                     </Box>
                 )}
                 <video
+                    data-testid="video"
+                    id="video"
                     ref={cameraVideo}
                     width={cameraSettings ? cameraSettings.width : 0}
                     height={cameraSettings ? cameraSettings.height : 0}
@@ -218,6 +221,7 @@ const ImageUpload: FC<IImageUploadProps> = ({ setPictures, disabled }) => {
                     hidden={isShowPlaceholderIcon}
                 />
                 <canvas
+                    data-testid="canvas"
                     id="canvas"
                     width={cameraSettings ? cameraSettings.width : 0}
                     height={cameraSettings ? cameraSettings.height : 0}
