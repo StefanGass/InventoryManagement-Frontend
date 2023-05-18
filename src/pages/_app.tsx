@@ -36,6 +36,7 @@ const MyApp = (props: MyAppProps) => {
     const [showDroppingQueue, setShowDroppingQueue] = useState(false);
     const [departmentId, setDepartmentId] = useState(-1);
     const [departmentName, setDepartmentName] = useState('');
+    const [token, setToken] = useState('');
     const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
 
     return (
@@ -72,7 +73,9 @@ const MyApp = (props: MyAppProps) => {
                     droppingReviewer,
                     setDroppingReviewer,
                     showDroppingQueue,
-                    setShowDroppingQueue
+                    setShowDroppingQueue,
+                    token,
+                    setToken
                 }}
             >
                 <ThemeProvider theme={themeMode === 'dark' ? darkTheme : lightTheme}>

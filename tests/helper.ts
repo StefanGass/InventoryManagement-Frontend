@@ -26,7 +26,9 @@ export function getTestUserContext():IUserContext{
         droppingReviewer: false,
         setDroppingReviewer: ()=> {},
         showDroppingQueue: false,
-        setShowDroppingQueue: ()=> {}
+        setShowDroppingQueue: ()=> {},
+        token: "",
+        setToken: ()=> {},
     }
 }
 

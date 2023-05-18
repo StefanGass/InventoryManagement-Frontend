@@ -4,6 +4,7 @@ export interface IUser {
     lastName: string;
     admin: boolean;
     superAdmin: boolean;
+    token: string;
 }
 
 export interface IDepartmentMember {
@@ -171,6 +172,8 @@ export interface IUserContext {
     setDroppingReviewer: (val: boolean) => void;
     showDroppingQueue: boolean;
     setShowDroppingQueue: (val: boolean) => void;
+    token: string;
+    setToken: (val: string) => void;
 }
 
 export interface IChartItem {
