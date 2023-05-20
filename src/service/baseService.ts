@@ -2,6 +2,13 @@ export function getJson<T>(url: string): Promise<T> {
     return toJson(get(url));
 }
 
+export function post<T>(url: string, body: any): Promise<T> {
+    return toJson(checkIfOk(fetch(url, {
+        method: "POST",
+        body
+    })));
+}
+
 export function patch(url: string, body: any) {
     return checkIfOk(fetch(url, {
         method: "PATCH",

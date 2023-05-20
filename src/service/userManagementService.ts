@@ -1,5 +1,5 @@
 import { IUser, IDepartmentMemberConverted, IConfiguration } from "components/interfaces";
-import { getJson } from "service/baseService";
+import { getJson, post } from "service/baseService";
 
 const basePath = `${process.env.HOSTNAME}/api/usermanagement`;
 
@@ -8,7 +8,7 @@ function getUser(encodedUsername:string, rememberMe: boolean):Promise<IUser> {
 }
 
 function getUserByToken(userToken:string):Promise<IUser> {
-    return getJson<IUser>(`${basePath}/user?token=${encodeURIComponent(userToken)}`);
+    return post<IUser>(`${basePath}/user-token`, userToken);
 }
 
 function getAllUsers(currentUserId:number){
