@@ -14,7 +14,7 @@ import Cookies from 'js-cookie';
 const base64 = require('base-64');
 
 const LoginForm: FC = () => {
-    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setAdmin, setSuperAdmin, setAdminMode, setDepartmentName, setDroppingReviewer } =
+    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setAdmin, setSuperAdmin, setAdminMode, setDepartmentName, setDroppingReviewer, setToken } =
         useContext(UserContext);
 
     const [loginError, setLoginError] = useState(false);
@@ -24,45 +24,68 @@ const LoginForm: FC = () => {
     const router = useRouter();
 
     useEffect(() => {
-        inventoryManagementService.getRememberMeCookieConfig().then(c => {
-            setRememberMeCookieDaysUntilExpiration(c.daysUntilExpiration);
+        userManagementService.getConfiguration().then(c => {
+            setRememberMeCookieDaysUntilExpiration(c.rememberMeCookieDaysUntilExpiration);
         });
     }, [])
 
     useEffect(() => {
-        const rememberMe = Cookies.get("rememberMe");
-        if (rememberMe) {
-            fetchUser(rememberMe);
+        const rememberMeToken = Cookies.get("rememberMe");
+        if (rememberMeToken) {
+            fetchUserByToken(rememberMeToken);
         } else {
             setLoading(false);
         }
     }, []);
 
-    const fetchUser = (encodedUsername: string) => {
-        userManagementService.getUser(encodedUsername)
+    const fetchUser = (usernameEncoded: string, angemeldetBleiben: boolean) => {
+        userManagementService.getUser(usernameEncoded, angemeldetBleiben)
             .then((result: IUser) => {
-                setUserId(result.id);
-                setFirstName(result.firstName);
-                setLastName(result.lastName);
-                setAdmin(result.admin);
-                setSuperAdmin(result.superAdmin);
-                if (result.admin || result.superAdmin) {
-                    setAdminMode(true);
-                } else {
-                    setAdminMode(false);
-                }
-                fetchDepartment(result.id);
-                fetchDepartmentMember(result.id);
-                if (!router.pathname.includes('[id]')) {
-                    // to force password saving prompt
-                    router.push(router.pathname);
-                }
+                handleGetUserSuccess(result);
             })
             .catch((error) => {
                 console.log(error);
                 setServerError(true);
             });
     }
+
+    const fetchUserByToken = (userToken: string) => {
+        userManagementService.getUserByToken(userToken)
+            .then((result: IUser) => {
+                handleGetUserSuccess(result);
+            })
+            .catch((error) => {
+                // if userByToken request fails, remove cookie and show Login
+                Cookies.remove("rememberMe");
+                setLoading(false);
+                console.log(error);
+            });
+    }
+
+    const handleGetUserSuccess = (result: IUser) => {
+        if (result.token) {
+            Cookies.set("rememberMe", result.token, { expires: rememberMeCookieDaysUntilExpiration });
+        } else {
+            Cookies.remove("rememberMe");
+        }
+        setUserId(result.id);
+        setFirstName(result.firstName);
+        setLastName(result.lastName);
+        setAdmin(result.admin);
+        setSuperAdmin(result.superAdmin);
+        setToken(result.token);
+        if (result.admin || result.superAdmin) {
+            setAdminMode(true);
+        } else {
+            setAdminMode(false);
+        }
+        fetchDepartment(result.id);
+        fetchDepartmentMember(result.id);
+        if (!router.pathname.includes('[id]')) {
+            // to force password saving prompt
+            router.push(router.pathname);
+        }
+    };
 
     const fetchDepartmentMember = (userId: number) => {
         inventoryManagementService.getDepartmentMember(userId)
@@ -110,19 +133,13 @@ const LoginForm: FC = () => {
         userControlService.checkUser(headers)
             .then((response) => {
                 if (response.ok) {
-                    if (angemeldetBleiben) {
-                        Cookies.set("rememberMe", usernameEncoded, { expires: rememberMeCookieDaysUntilExpiration });
-                    }
                     // match the user with the database
-                    fetchUser(usernameEncoded);
-                } else {
-                    console.log('Wrong credentials');
-                    setLoginError(true);
+                    fetchUser(usernameEncoded, angemeldetBleiben);
                 }
             })
             .catch((error) => {
                 console.log(error);
-                setServerError(true);
+                setLoginError(true);
             });
     };
 

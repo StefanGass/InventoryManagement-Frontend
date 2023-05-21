@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import LoginForm from "components/forms/LoginForm";
-import { IRememberMeCookieConfig } from "components/interfaces";
-import inventoryManagementService from "service/inventoryManagementService";
+import { IConfiguration, IUser } from "components/interfaces";
 import userControlService from "service/userControlService";
 import userEvent from "@testing-library/user-event";
 import * as process from "process";
 import Cookies from 'js-cookie';
+import userManagementService from "service/userManagementService";
 
 jest.mock("next/router", () => require("next-router-mock"));
 
@@ -40,16 +40,28 @@ describe("LoginForm", () => {
 });
 
 function createServiceSpy() {
-    const remembermecookieconfig: IRememberMeCookieConfig = {
+    const remembermecookieconfig: IConfiguration = {
         id: 1,
-        daysUntilExpiration: 3
+        rememberMeCookieDaysUntilExpiration: 3
     }
-    jest.spyOn(inventoryManagementService, "getRememberMeCookieConfig")
+    const user: IUser = {
+        id: 1,
+        firstName: "First",
+        lastName: "Last",
+        admin: true,
+        superAdmin: true,
+        token: "1234"
+    }
+    jest.spyOn(userManagementService, "getConfiguration")
         .mockReturnValue(new Promise(resolve => {
             process.nextTick(() => resolve(remembermecookieconfig));
         }));
     jest.spyOn(userControlService, "checkUser")
         .mockReturnValue(new Promise(resolve => {
             process.nextTick(() => resolve({ ok: true }));
+        }));
+    jest.spyOn(userManagementService, "getUser")
+        .mockReturnValue(new Promise(resolve => {
+            process.nextTick(() => resolve(user));
         }));
 }
