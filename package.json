@@ -13,7 +13,7 @@
     "type-check": "tsc",
     "testE2EInstall": "npx playwright install",
     "testE2E": "npx playwright test",
-    "testE2EVisible": "npx playwright test ImageUpload.spec.ts --headed",
+    "testE2EVisible": "npx playwright test --headed",
     "test": "jest --watch",
     "test:ci": "jest --ci --coverage"
   },

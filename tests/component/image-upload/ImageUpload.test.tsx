@@ -25,10 +25,3 @@ function renderElement() {
     const array: IPicture[] = [];
     return render(<ImageUpload setPictures={()=> array}/>);
 }
-
-
-
-
-
-
-
