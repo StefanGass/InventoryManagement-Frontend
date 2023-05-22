@@ -15,10 +15,11 @@ interface IAutocomplete {
     value?: string;
     disabled?: boolean;
     suggestDefaultValue?: boolean;
+    testId?: string;
 }
 
 const CustomAutocomplete: FC<IAutocomplete> = (props) => {
-    const { options, optionKey, label, setValue, error, required = false, value, disabled, suggestDefaultValue } = props;
+    const { options, optionKey, label, setValue, error, required = false, value, disabled, suggestDefaultValue, testId } = props;
     const { themeMode } = useContext(UserContext);
     const [objectValue, setObjectValue] = useState(value ? options.find((option) => option[optionKey] === value) : suggestDefaultValue ? options[0] : {});
     const [inputValue, setInputValue] = useState(value ? value : suggestDefaultValue ? options[0][optionKey] : '');
@@ -36,6 +37,7 @@ const CustomAutocomplete: FC<IAutocomplete> = (props) => {
         <Autocomplete
             {...defaultProps}
             disablePortal
+            data-testid={testId}
             autoComplete={true}
             autoSelect={true}
             clearOnEscape={true}

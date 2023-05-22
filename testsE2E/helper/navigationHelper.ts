@@ -15,6 +15,7 @@ export class NavigationHelper {
     public static async login(page: Page) {
         await NavigationHelper.start(page);
         await page.locator("#username").fill("Super Admin");
+        await page.locator("#password").fill("password");
         await page.click("#loginButton");
         await NavigationHelper.assertPageLoaded(page, NavigationPage.dashboard);
     }

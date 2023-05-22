@@ -1,20 +1,44 @@
-import { IDepartmentMember, IInventoryItem } from "components/interfaces";
-import { getJson } from "service/baseService";
+import { IDepartment, IDepartmentMember, IInventoryItem } from "components/interfaces";
+import { deleteRequest, getJson, patch } from "service/baseService";
+import { GridRowId } from "@mui/x-data-grid";
 
 
-const basePath= `${process.env.HOSTNAME}/api/inventorymanagement/`;
+const basePath = `${process.env.HOSTNAME}/api/inventorymanagement`;
 
-function getDepartmentMember(userId:number):Promise<IDepartmentMember> {
+
+function getDepartmentMember(userId: number): Promise<IDepartmentMember> {
     return getJson<IDepartmentMember>(`${basePath}/department/member/${userId}`);
 }
-function getAllDroppingQueueInventoryItems():Promise<IInventoryItem[]> {
+
+function getAllDroppingQueueInventoryItems(): Promise<IInventoryItem[]> {
     return getJson<IInventoryItem[]>(`${basePath}/inventory/droppingQueue`);
-}function getDroppingQueueInventoryItemsByDepartmentId(departmentId:number):Promise<IInventoryItem[]> {
+}
+
+function getDroppingQueueInventoryItemsByDepartmentId(departmentId: number): Promise<IInventoryItem[]> {
     return getJson<IInventoryItem[]>(`${basePath}/inventory/department/${departmentId}/droppingQueue`);
+}
+function getDepartmentOfUser(userId: number): Promise<IDepartment> {
+    return getJson<IDepartment>(`${basePath}/department/user/${userId}`);
+}
+
+function getAllDepartments() {
+    return getJson<IDepartment[]>(`${basePath}/department/`);
+}
+
+function updateReviewer(userId: number, droppingReviewer: boolean) {
+    return patch(`${basePath}/department/member/${userId}/reviewer`, droppingReviewer);
+}
+
+function deleteDepartmentMember(department:IDepartment,row : GridRowId){
+    return deleteRequest(`${process.env.HOSTNAME}/api/inventorymanagement/department/member/` + department.id,row);
 }
 
 export default {
     getDepartmentMember,
     getAllDroppingQueueInventoryItems,
-    getDroppingQueueInventoryItemsByDepartmentId
-}
+    getDroppingQueueInventoryItemsByDepartmentId,
+    getAllDepartments,
+    deleteDepartmentMember,
+    updateReviewer,
+    getDepartmentOfUser,
+};

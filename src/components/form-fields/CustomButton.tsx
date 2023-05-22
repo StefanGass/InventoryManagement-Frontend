@@ -6,9 +6,10 @@ interface ICustomButton {
     label: string;
     symbol?: JSX.Element;
     disabled?: boolean;
+    id?: string;
 }
 
-const CustomButton: FC<ICustomButton> = ({ onClick, label, symbol, disabled }) => {
+const CustomButton: FC<ICustomButton> = ({ onClick, label, symbol, disabled, id }) => {
     return (
         <Grid
             sx={{
@@ -24,6 +25,7 @@ const CustomButton: FC<ICustomButton> = ({ onClick, label, symbol, disabled }) =
                 id={'btn_'+label}
                 onClick={onClick}
                 disabled={disabled}
+                id={id}
                 style={{
                     height: '4em',
                     width: '19.35em'

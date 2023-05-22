@@ -40,6 +40,7 @@ const CustomSelect: FC<ISelectProps> = (props) => {
                 <MenuItem value={4}>Lieferant</MenuItem>
                 {(admin || superAdmin) && <MenuItem value={5}>Abteilung</MenuItem>}
                 {(superAdmin) && <MenuItem value={6}>Drucker</MenuItem>}
+                {(admin || superAdmin) && <MenuItem value={7}>4 Augen Prinzip</MenuItem>}
             </Select>
         </FormControl>
     );
