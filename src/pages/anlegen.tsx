@@ -7,6 +7,7 @@ import ParameterForm from 'components/forms/ParameterForm';
 import ParameterFormDepartment from 'components/forms/ParameterFormDepartment';
 import { UserContext } from 'pages/_app';
 import ErrorInformation from "components/layout/ErrorInformation";
+import ParameterDroppingReviewer from "components/forms/ParameterDroppingReviewer";
 
 const Anlegen: FC = () => {
     const { userId, admin, superAdmin } = useContext(UserContext);
@@ -42,6 +43,8 @@ const Anlegen: FC = () => {
                 return 'department';
             case 6:
                 return 'printer';
+            case 7:
+                return 'droppingReviewer';
             default:
                 return '';
         }
@@ -99,7 +102,10 @@ const Anlegen: FC = () => {
                     .catch((error) => {
                         handleError(error);
                     });
-            } else {
+            } else if (parameter === 7){
+                setLoading(false);
+            }
+            else {
                 getRequest();
             }
         }
@@ -156,7 +162,7 @@ const Anlegen: FC = () => {
                     <ErrorInformation></ErrorInformation>
                 ) : (
                     <>
-                        <ParameterForm
+                        {parameter !== 7 && <ParameterForm
                             parameter={parameter}
                             tableList={resultList}
                             categoryOptions={categoryOptionsList}
@@ -165,7 +171,7 @@ const Anlegen: FC = () => {
                             onClick={postRequestClick}
                             setAddedSuccessfulAlert={setAddSuccessfulAlert}
                             setDuplicateErrorAlert={setDuplicateErrorAlert}
-                        />
+                        />}
                         {parameter === 5 && (
                             <ParameterFormDepartment
                                 userId={userId}
@@ -179,6 +185,7 @@ const Anlegen: FC = () => {
                                 setAddNewDepartmentDuplicateErrorAlert={setDuplicateErrorAlert}
                             />
                         )}
+                        {parameter === 7 &&(<ParameterDroppingReviewer></ParameterDroppingReviewer>)}
                     </>
                 )}
             </Box>

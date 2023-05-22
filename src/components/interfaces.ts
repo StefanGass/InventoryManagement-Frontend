@@ -4,6 +4,7 @@ export interface IUser {
     lastName: string;
     admin: boolean;
     superAdmin: boolean;
+    token: string;
 }
 
 export interface IDepartmentMember {
@@ -100,6 +101,7 @@ export interface ISupplier {
 export interface IDepartment {
     id: number;
     departmentName: string;
+    departmentMembers?: IDepartmentMember[]
 }
 
 export interface IObjectToSend {
@@ -170,6 +172,8 @@ export interface IUserContext {
     setDroppingReviewer: (val: boolean) => void;
     showDroppingQueue: boolean;
     setShowDroppingQueue: (val: boolean) => void;
+    token: string;
+    setToken: (val: string) => void;
 }
 
 export interface IChartItem {
@@ -191,4 +195,9 @@ export interface IChartItem {
 
 export interface IHidden {
     hidden?:boolean;
+}
+
+export interface IConfiguration {
+    id: number;
+    rememberMeCookieDaysUntilExpiration: number;
 }
