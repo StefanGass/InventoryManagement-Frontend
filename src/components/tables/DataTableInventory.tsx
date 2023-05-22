@@ -125,8 +125,8 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
                     <Box sx={{ my: 2 }} />
                 </>
             )}
-            <div style={items.length < 15 ? { height: 'auto', filter: searching?'blur(3px)':'' } : { height: 700,filter: searching?'blur(3px)':'' }}>
-                <div style={{position:"relative"}}>
+            <div  style={items.length < 15 ? { height: 700, filter: searching?'blur(3px)':'' } : { height: 700,filter: searching?'blur(3px)':'' }}>
+                <div style={{height:700,position:"relative"}}>
                         {searching? (
                             <div style={{position:"absolute",top:0,left:0,
                                 height: '100%',width:'100%' }}>

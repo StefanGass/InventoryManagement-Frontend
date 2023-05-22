@@ -1,7 +1,7 @@
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { IChartItem } from 'components/interfaces';
 import { FC, useContext } from 'react';
-import lightTheme, { darkTheme, defaultInfoBlue, mainGold, mainRedDarkMode, mainRedLightMode } from 'styles/theme';
+import lightTheme, { darkTheme, defaultInfoBlue, mainGold, mainRed } from 'styles/theme';
 import { UserContext } from 'pages/_app';
 
 interface ICustomMultilineChartProps {
@@ -58,7 +58,7 @@ const CustomMultilineChart: FC<ICustomMultilineChartProps> = (props) => {
                     type="monotone"
                     dataKey="piecesDropped"
                     name="Ausgeschieden"
-                    stroke={themeMode === 'dark' ? mainRedDarkMode : mainRedLightMode}
+                    stroke={mainRed}
                     activeDot={{ r: 6 }}
                 />
                 <Line

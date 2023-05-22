@@ -1,8 +1,7 @@
 import { createTheme } from '@mui/material/styles';
 import { deDE } from '@mui/x-data-grid';
 
-export const mainRedLightMode = '#800000';
-export const mainRedDarkMode = '#a00000';
+export const mainRed = '#800000';
 export const mainBlack = '#212121';
 export const mainWhite = '#fafafa';
 export const mainGold = '#FFD700';
@@ -21,7 +20,7 @@ export const darkTheme = createTheme(
                 white: mainWhite
             },
             primary: {
-                main: mainRedDarkMode
+                main: mainRed
             },
             secondary: {
                 main: mainBlack
@@ -68,7 +67,7 @@ const lightTheme = createTheme(
                 white: mainWhite
             },
             primary: {
-                main: mainRedLightMode
+                main: mainRed
             },
             secondary: {
                 main: mainWhite
