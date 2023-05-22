@@ -21,7 +21,6 @@ const CustomButton: FC<ICustomButton> = ({ onClick, label, symbol, disabled }) =
         >
             <Button
                 variant="contained"
-                data-testid={'btn_'+label}
                 id={'btn_'+label}
                 onClick={onClick}
                 disabled={disabled}

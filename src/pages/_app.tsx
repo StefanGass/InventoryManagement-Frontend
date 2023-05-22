@@ -25,17 +25,17 @@ export const UserContext = createContext<IUserContext>({} as IUserContext);
 const MyApp = (props: MyAppProps) => {
     const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
 
-    const [login, setLogin] = useState(false);            // original: false
-    const [userId, setUserId] = useState(-1);             //  original: -1
+    const [login, setLogin] = useState(false);
+    const [userId, setUserId] = useState(-1);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [admin, setAdmin] = useState(false);          // original: false
-    const [superAdmin, setSuperAdmin] = useState(false);  // original: false
+    const [admin, setAdmin] = useState(false);
+    const [superAdmin, setSuperAdmin] = useState(false);
     const [adminMode, setAdminMode] = useState(false);
     const [droppingReviewer, setDroppingReviewer] = useState(false);
     const [showDroppingQueue, setShowDroppingQueue] = useState(false);
     const [departmentId, setDepartmentId] = useState(-1);
-    const [departmentName, setDepartmentName] = useState('');   // original: ''
+    const [departmentName, setDepartmentName] = useState('');
     const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
 
     return (
