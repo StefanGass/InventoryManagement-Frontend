@@ -1,4 +1,8 @@
-import { IDepartment, IDepartmentMember, IInventoryItem } from "components/interfaces";
+import {
+    IDepartment,
+    IDepartmentMember, IDetailInventoryItem,
+    IInventoryItem
+} from "components/interfaces";
 import { deleteRequest, getJson, patch } from "service/baseService";
 import { GridRowId } from "@mui/x-data-grid";
 
@@ -10,11 +14,11 @@ function getDepartmentMember(userId: number): Promise<IDepartmentMember> {
     return getJson<IDepartmentMember>(`${basePath}/department/member/${userId}`);
 }
 
-function getAllDroppingQueueInventoryItems(): Promise<IInventoryItem[]> {
+function getAllDroppingQueueInventoryItems(): Promise<IDetailInventoryItem[]> {
     return getJson<IInventoryItem[]>(`${basePath}/inventory/droppingQueue`);
 }
 
-function getDroppingQueueInventoryItemsByDepartmentId(departmentId: number): Promise<IInventoryItem[]> {
+function getDroppingQueueInventoryItemsByDepartmentId(departmentId: number): Promise<IDetailInventoryItem[]> {
     return getJson<IInventoryItem[]>(`${basePath}/inventory/department/${departmentId}/droppingQueue`);
 }
 function getDepartmentOfUser(userId: number): Promise<IDepartment> {
@@ -30,7 +34,19 @@ function updateReviewer(userId: number, droppingReviewer: boolean) {
 }
 
 function deleteDepartmentMember(department:IDepartment,row : GridRowId){
-    return deleteRequest(`${process.env.HOSTNAME}/api/inventorymanagement/department/member/` + department.id,row);
+    return deleteRequest(`${basePath}/department/member/` + department.id,row);
+}
+
+function deactivateInventoryItem(id:number,body: { userName:string }){
+    return patch(`${basePath}/inventory/${id}/deactivate`,body);
+}
+
+function reactivateInventoryItem(id:number,body: { userName:string }){
+    return patch(`${basePath}/inventory/${id}/activate`,body);
+}
+
+function updateInventoryItem(item:IDetailInventoryItem){
+    return patch(`${basePath}/inventory/${item.id}`,item);
 }
 
 export default {
@@ -41,4 +57,7 @@ export default {
     deleteDepartmentMember,
     updateReviewer,
     getDepartmentOfUser,
+    deactivateInventoryItem,
+    reactivateInventoryItem,
+    updateInventoryItem
 };

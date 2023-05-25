@@ -9,7 +9,7 @@ export function post<T>(url: string, body: any): Promise<T> {
     })));
 }
 
-export function patch(url: string, body: any) {
+export function patch(url: string, body?: any) {
     return checkIfOk(fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

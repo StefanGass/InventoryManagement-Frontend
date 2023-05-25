@@ -4,7 +4,7 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { Box, Chip, Grid, Typography } from '@mui/material';
-import { IDataTableInventory, IInventoryItem } from 'components/interfaces';
+import { IDataTableInventory, IDetailInventoryItem } from "components/interfaces";
 import CommonConstants from 'utils/CommonConstants';
 import { darkGrey } from 'styles/theme';
 import { useRouter } from 'next/router';
@@ -64,6 +64,12 @@ const columns: GridColDef[] = [
     { field: 'droppingDate', headerName: 'Ausscheidedatum', width: 140 },
     { field: 'lastChangedDate', headerName: 'Letzte Änderung', width: 160 }
 ];
+const droppingInformationsColumns:GridColDef[]= [
+    { field: 'droppingQueue', headerName: 'Art', width: 160 },
+    { field: 'droppingQueuePieces', headerName: 'Auszusch. Anzahl', width: 140 },
+    { field: 'droppingQueueDate', headerName: 'Auszusch. Datum', width: 140 },
+    { field: 'droppingQueueReason', headerName: 'Auszusch. Grund', width: 160 }
+]
 
 const DataTableInventory: FC<IDataTableInventory> = (props) => {
     const {
@@ -71,7 +77,10 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
         setSearch,
         showSearchBar,
         showSwitchAndLegend,
-        searching
+        searching,
+        includeDroppingInformation,
+        selectionModel,
+        setSelectionModel
     } = props;
 
     const [checkedDropped, setStateDropped] = useState(false);
@@ -141,7 +150,7 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
                                 return false;
                             }
                             return true;
-                        } ).map((item: IInventoryItem) => ({
+                        } ).map((item: IDetailInventoryItem) => ({
                             id: item.id,
                             itemInternalNumber: item.itemInternalNumber,
                             category: item.type?.category?.categoryName,
@@ -195,17 +204,35 @@ const DataTableInventory: FC<IDataTableInventory> = (props) => {
                                     })
                                     .replaceAll('/', '.')}`
                                 : null,
-                            active: item.active
+                            active: item.active,
+                            droppingQueue:item.droppingQueue,
+                            droppingQueueDate:item.droppingQueueDate
+                                ? `${new Date(item.droppingQueueDate)
+                                    .toLocaleDateString('en-GB', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit'
+                                    })
+                                    .replaceAll('/', '.')}`
+                                : null,
+                            droppingQueueReason:item.droppingQueueReason,
+                            droppingQueuePieces:item.droppingQueuePieces
                         }))}
                         autoHeight={items.length < 15}
                         density="compact"
-                        columns={columns}
+                        columns={includeDroppingInformation?[...columns,...droppingInformationsColumns]:columns}
                         pageSize={100}
                         rowsPerPageOptions={[100]}
                         hideFooterSelectedRowCount
                         components={{ Toolbar: GridToolbar }}
                         onRowClick={(params) => router.push(`/details/${params.id}`)}
                         className={styles.hover}
+                        checkboxSelection={!!selectionModel}
+                        selectionModel={selectionModel}
+                        onSelectionModelChange={(selection) => {
+                            if(setSelectionModel)
+                                setSelectionModel(selection);
+                        }}
                     />
                 </div>
 

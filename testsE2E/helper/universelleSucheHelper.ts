@@ -19,5 +19,6 @@ export class UniverselleSucheHelper {
     public static async navigateToDetailWithEnter(page:Page){
         await UniverselleSucheHelper.getSearchField(page).press("Enter");
         await NavigationHelper.assertPageLoaded(page,NavigationPage.detail);
+        
     }
 }

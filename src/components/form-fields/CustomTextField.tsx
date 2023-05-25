@@ -15,10 +15,11 @@ interface ITextField {
     helperText?: string;
     disabled?: boolean;
     type?: string;
+    id?:string;
 }
 
 const CustomTextField: FC<ITextField> = (props) => {
-    const { label, setValue, error = false, multiline = false, required = false, value, helperText = null, disabled, type = 'string' } = props;
+    const { label, setValue, error = false, multiline = false, required = false, value, helperText = null, disabled, type = 'string',id } = props;
     const { themeMode } = useContext(UserContext);
 
     return (
@@ -35,6 +36,7 @@ const CustomTextField: FC<ITextField> = (props) => {
                 InputLabelProps={{ shrink: true }}
                 variant="outlined"
                 value={value}
+                id={id}
                 onChange={(e) => setValue(e.target.value)}
                 error={error}
                 minRows={multiline ? 4 : 1}
