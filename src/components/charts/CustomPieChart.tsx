@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { IChartItem } from 'components/interfaces';
+import {Box} from "@mui/material";
 
 interface ICustomPieChartProps {
     itemList: IChartItem[];
@@ -11,14 +11,14 @@ interface IPieChartData {
     value: number;
 }
 
-const CustomPieChart: FC<ICustomPieChartProps> = (props) => {
+export default function CustomPieChart(props: ICustomPieChartProps) {
     const { itemList } = props;
 
     const dataList: IPieChartData[] = [];
     itemList.map((item) => dataList.push({ name: item.department.departmentName, value: item.pieces }));
 
     return (
-        <div style={{ width: '100%', height: 300 }}>
+        <Box style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
                 <PieChart>
                     <Legend
@@ -39,8 +39,6 @@ const CustomPieChart: FC<ICustomPieChartProps> = (props) => {
                     </Pie>
                 </PieChart>
             </ResponsiveContainer>
-        </div>
+        </Box>
     );
-};
-
-export default CustomPieChart;
+}

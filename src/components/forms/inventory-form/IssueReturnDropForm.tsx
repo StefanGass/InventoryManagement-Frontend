@@ -1,38 +1,42 @@
-import { FC, MouseEvent, useEffect, useState } from 'react';
-import { Container, Grid, Tooltip } from '@mui/material';
+import { MouseEvent, useContext, useEffect, useState } from 'react';
+import { Box, Checkbox, Container, FormControlLabel, Grid, Tooltip } from '@mui/material';
 import CustomButton from 'components/form-fields/CustomButton';
-import { Cancel, CheckCircle, DeleteForever, InfoRounded, RestartAlt, RotateRight } from '@mui/icons-material';
+import { Cancel, CheckCircle, DeleteForever, RestartAlt, RotateRight } from '@mui/icons-material';
 import { IDetailInventoryItem, IReturningOptions } from 'components/interfaces';
 import CustomTextField from 'components/form-fields/CustomTextField';
 import CustomDatePicker from 'components/form-fields/CustomDatePicker';
 import CustomAlert from 'components/form-fields/CustomAlert';
 import { formatISO } from 'date-fns';
 import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
+import { AUSSCHEIDEN } from 'utils/droppingActivationUtil';
+import { UserContext } from '../../../../pages/_app';
 
 interface IIssueReturnDropFormProps {
     inventoryForm: IDetailInventoryItem;
     onFormSent: (...params) => void;
     isSinglePieceItem: boolean;
-    disabled?: boolean;
+    isDisabled?: boolean;
 }
 
-const IssueReturnDropForm: FC<IIssueReturnDropFormProps> = (props) => {
-    const { inventoryForm, onFormSent, isSinglePieceItem, disabled } = props;
+export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
+    const { userId } = useContext(UserContext);
+    const { inventoryForm, onFormSent, isSinglePieceItem, isDisabled } = props;
 
-    const [startIssuingProcess, setStartIssuingProcess] = useState(false);
-    const [startReturningProcess, setStartReturningProcess] = useState(false);
-    const [startDroppingProcess, setStartDroppingProcess] = useState(false);
+    const [isStartIssuingProcess, setIsStartIssuingProcess] = useState(false);
+    const [isStartReturningProcess, setIsStartReturningProcess] = useState(false);
+    const [isStartDroppingProcess, setIsStartDroppingProcess] = useState(false);
 
     const [pieces, setPieces] = useState('');
-    const [piecesError, setPiecesError] = useState(false);
+    const [isPiecesError, setIsPiecesError] = useState(false);
     const [text, setText] = useState('');
-    const [textError, setTextError] = useState(false);
-    const [textCharError, setTextCharError] = useState(false);
+    const [isTextError, setIsTextError] = useState(false);
+    const [isTextCharError, setIsTextCharError] = useState(false);
     const [date, setDate] = useState(String(new Date()));
-    const [dateError, setDateError] = useState(false);
+    const [isDateError, setIsDateError] = useState(false);
+    const [isMergeIssuedToSame, setIsMergeIssuedToSame] = useState(true);
 
     const [returningValue, setReturningValue] = useState<IReturningOptions | null>(null);
-    const [returningValueError, setReturningValueError] = useState(false);
+    const [isReturningValueError, setIsReturningValueError] = useState(false);
     const [returningOptions, setReturningOptions] = useState<IReturningOptions[]>([]);
     const [returningPiecesMax, setReturningPiecesMax] = useState(1);
 
@@ -41,111 +45,129 @@ const IssueReturnDropForm: FC<IIssueReturnDropFormProps> = (props) => {
         setText('');
         setDate('');
         setReturningValue(null);
-        setPiecesError(false);
-        setTextError(false);
-        setDateError(false);
-        setTextCharError(false);
-        setReturningValueError(false);
+        setIsPiecesError(false);
+        setIsTextError(false);
+        setIsDateError(false);
+        setIsTextCharError(false);
+        setIsReturningValueError(false);
     };
 
     useEffect(() => {
-        setStartIssuingProcess(false);
-        setStartReturningProcess(false);
-        setStartDroppingProcess(false);
-        resetFields();
-    }, [disabled]);
+        if (!inventoryForm.droppingQueue) {
+            setIsStartIssuingProcess(false);
+            setIsStartReturningProcess(false);
+            setIsStartDroppingProcess(false);
+            resetFields();
+        }
+    }, [isDisabled]);
 
     useEffect(() => {
-        pieces && setPiecesError(false);
-        text && setTextError(false);
-        date && setDateError(false);
-        !text.includes('~') && setTextCharError(false);
+        pieces && setIsPiecesError(false);
+        text && setIsTextError(false);
+        date && setIsDateError(false);
+        !text.includes('~') && setIsTextCharError(false);
     }, [pieces, text, date]);
 
     useEffect(() => {
         !returningValue && setPieces('');
         returningValue && setPieces(returningValue.returningPieces.toString());
         returningValue && setReturningPiecesMax(returningValue.returningPieces);
-        setPiecesError(false);
-        setReturningValueError(false);
+        setIsPiecesError(false);
+        setIsReturningValueError(false);
     }, [returningValue]);
 
-    const getReturningOptions = () => {
-        const tempList = inventoryForm.issuedTo?.split('\n');
+    // get options to choose from, when returning multi-piece items
+    function getReturningOptions() {
+        const tmpList = inventoryForm.issuedTo?.split('\n').slice(0, -1) || []; // remove the last entry, as it is empty
         const resultList: IReturningOptions[] = [];
-        if (tempList) {
-            tempList.length = tempList.length - 1;
-            for (let i = 0; i < tempList.length; i++) {
-                const tempPieces = Number(tempList[i].split(' ~ ')[1].split(' ')[0]);
-                const tempIssuedTo = tempList[i].split(' ~ ')[2] + ' (' + tempList[i].split(' ~ ')[0] + ')';
-                resultList.push({ id: i, issuedTo: tempIssuedTo, returningPieces: tempPieces });
-            }
-            setReturningOptions(resultList);
-        }
-    };
+        tmpList.forEach((entry, index) => {
+            const tmpPieces = Number(entry.split(' ~ ')[1].split(' ')[0]);
+            const tmpIssuedTo = entry.split(' ~ ')[2] + ' (' + entry.split(' ~ ')[0] + ')';
+            resultList.push({ id: index, issuedTo: tmpIssuedTo, returningPieces: tmpPieces });
+        });
+        setReturningOptions(resultList);
+    }
 
-    const getNewIssuedToString = (id: number) => {
-        const tempList = inventoryForm.issuedTo?.split('\n');
-        let newIssuedToString = '';
-        if (tempList) {
-            tempList.length = tempList.length - 1;
-            for (let i = 0; i < tempList.length; i++) {
-                if (i === id) {
-                    const tempDate = tempList[i].split(' ~ ')[0];
-                    let tempPieces = Number(tempList[i].split(' ~ ')[1].split(' ')[0]);
-                    const tempIssuedTo = tempList[i].split(' ~ ')[2];
-                    if (returningValue && returningValue.returningPieces !== Number(pieces)) {
-                        tempPieces = tempPieces - Number(pieces);
-                        newIssuedToString = newIssuedToString + tempDate + ' ~ ' + tempPieces + ' Stk. ~ ' + tempIssuedTo + '\n';
-                    }
-                } else {
-                    newIssuedToString = newIssuedToString + tempList[i] + '\n';
+    // merge and remove issued items entries inside the existing multi-piece item string, when items are issued
+    function getNewIssuedToStringWhenIssuingAndMergingSameEntries() {
+        const tmpList = inventoryForm.issuedTo?.split('\n').slice(0, -1) || []; // remove the last entry, as it is empty
+        let alreadyIssuedPieces = 0;
+        const filteredList = tmpList.filter((entry) => {
+            const tmpIssuedTo = entry.split(' ~ ')[2];
+            if (tmpIssuedTo?.trim().toLowerCase() === text.trim().toLowerCase()) {
+                alreadyIssuedPieces += Number(entry.split(' ~ ')[1].split(' ')[0]);
+                return false; // exclude this entry from the updated list
+            }
+            return true;
+        });
+        let updatedIssuedToString = '';
+        filteredList.map((entry) => {
+            if (entry) {
+                updatedIssuedToString += entry + '\n';
+            }
+        });
+        return `${formatISO(new Date(date), { representation: 'date' })} ~ ${Number(pieces) + alreadyIssuedPieces} Stk. ~ ${text}\n` + updatedIssuedToString;
+    }
+
+    // reduce or remove the number of issued items inside the existing multi-piece item string, when items are returned
+    function getNewIssuedToStringWhenReturningItems(id: number) {
+        const tmpList = inventoryForm.issuedTo?.split('\n').slice(0, -1) || []; // remove the last entry, as it is empty
+        let updatedIssuedToString = '';
+        tmpList?.forEach((entry, index) => {
+            if (index === id) {
+                // manipulate only the chosen line, append every other
+                const [tmpDate, tmpPiecesStr, tmpIssuedTo] = entry.split(' ~ ');
+                let tmpPieces = Number(tmpPiecesStr.split(' ')[0]);
+                if (returningValue && returningValue.returningPieces !== Number(pieces)) {
+                    tmpPieces -= Number(pieces);
+                    updatedIssuedToString += `${tmpDate} ~ ${tmpPieces} Stk. ~ ${tmpIssuedTo}\n`;
                 }
+            } else {
+                updatedIssuedToString += entry + '\n';
             }
-        }
-        return newIssuedToString;
-    };
+        });
+        return updatedIssuedToString;
+    }
 
-    const onStartIssuingProcessButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    function onStartIssuingProcessButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
-        if (startIssuingProcess) {
-            setStartIssuingProcess(false);
+        if (isStartIssuingProcess) {
+            setIsStartIssuingProcess(false);
             resetFields();
         } else {
             setPieces(String(inventoryForm.piecesStored));
             setDate(String(new Date()));
-            setStartIssuingProcess(true);
+            setIsStartIssuingProcess(true);
         }
-    };
+    }
 
-    const onStartReturningProcessButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    function onStartReturningProcessButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
-        if (startReturningProcess) {
-            setStartReturningProcess(false);
+        if (isStartReturningProcess) {
+            setIsStartReturningProcess(false);
             resetFields();
         } else {
             if (!isSinglePieceItem) {
                 getReturningOptions();
             }
-            setStartReturningProcess(true);
+            setIsStartReturningProcess(true);
         }
-    };
+    }
 
-    const onStartDroppingProcessButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    function onStartDroppingProcessButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
-        if (startDroppingProcess) {
-            setStartDroppingProcess(false);
+        if (isStartDroppingProcess) {
+            setIsStartDroppingProcess(false);
             resetFields();
         } else {
             setPieces(String(inventoryForm.piecesStored));
             setDate(String(new Date()));
-            setStartDroppingProcess(true);
+            setIsStartDroppingProcess(true);
         }
-    };
+    }
 
-    const onSendButtonClick = async (e: MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        if (startReturningProcess) {
+    function onSendButtonClick() {
+        if (isStartReturningProcess) {
             if (isSinglePieceItem) {
                 onFormSent({
                     ...inventoryForm,
@@ -157,12 +179,12 @@ const IssueReturnDropForm: FC<IIssueReturnDropFormProps> = (props) => {
             } else {
                 if (!returningValue || !pieces || pieces === '') {
                     if (!returningValue) {
-                        setReturningValueError(true);
+                        setIsReturningValueError(true);
                     } else if (!pieces || pieces === '') {
-                        setPiecesError(true);
+                        setIsPiecesError(true);
                     }
                 } else {
-                    const newIssuedToString = getNewIssuedToString(returningValue.id);
+                    const newIssuedToString = getNewIssuedToStringWhenReturningItems(returningValue.id);
                     onFormSent({
                         ...inventoryForm,
                         piecesIssued: inventoryForm.piecesIssued - Number(pieces),
@@ -176,28 +198,32 @@ const IssueReturnDropForm: FC<IIssueReturnDropFormProps> = (props) => {
             let formattedText = text.trim();
             if (!pieces || pieces === '' || !text || text === '' || formattedText.length === 0 || text.includes('~') || !date || date === '') {
                 if (!pieces || pieces === '') {
-                    setPiecesError(true);
+                    setIsPiecesError(true);
                 }
                 if (!text || text === '') {
-                    setTextError(true);
+                    setIsTextError(true);
                 }
                 if (formattedText.length === 0) {
-                    setTextError(true);
+                    setIsTextError(true);
                     setText('');
                 }
                 if (text !== '' && text.includes('~')) {
-                    setTextError(true);
-                    setTextCharError(true);
+                    setIsTextError(true);
+                    setIsTextCharError(true);
                 }
-                if (!startReturningProcess && (!date || date === '')) {
-                    setDateError(true);
+                if (!isStartReturningProcess && (!date || date === '')) {
+                    setIsDateError(true);
                 }
             } else {
                 const isoFormatDate = formatISO(new Date(date), { representation: 'date' });
                 const isoFormatDateTime = isoFormatDate + 'T00:00:00Z';
-                if (startIssuingProcess) {
+                if (isStartIssuingProcess) {
                     if (!isSinglePieceItem) {
-                        formattedText = isoFormatDate + ' ~ ' + pieces + ' Stk. ~ ' + formattedText + '\n' + inventoryForm.issuedTo;
+                        if (isMergeIssuedToSame) {
+                            formattedText = getNewIssuedToStringWhenIssuingAndMergingSameEntries();
+                        } else {
+                            formattedText = isoFormatDate + ' ~ ' + pieces + ' Stk. ~ ' + formattedText + '\n' + inventoryForm.issuedTo;
+                        }
                     }
                     onFormSent({
                         ...inventoryForm,
@@ -206,21 +232,19 @@ const IssueReturnDropForm: FC<IIssueReturnDropFormProps> = (props) => {
                         issuedTo: formattedText,
                         issueDate: isoFormatDateTime
                     } as IDetailInventoryItem);
-                } else if (startDroppingProcess) {
-                    if (!isSinglePieceItem) {
-                        formattedText = isoFormatDate + ' ~ ' + pieces + ' Stk. ~ ' + formattedText + '\n' + inventoryForm.droppingReason;
-                    }
+                } else if (isStartDroppingProcess) {
                     onFormSent({
                         ...inventoryForm,
-                        piecesDropped: Number(pieces) + inventoryForm.piecesDropped,
-                        piecesStored: inventoryForm.piecesStored - Number(pieces),
-                        droppingReason: formattedText,
-                        droppingDate: isoFormatDateTime
+                        droppingQueue: AUSSCHEIDEN,
+                        droppingQueuePieces: Number(pieces),
+                        droppingQueueReason: formattedText,
+                        droppingQueueDate: isoFormatDateTime,
+                        droppingQueueRequester: userId
                     } as IDetailInventoryItem);
                 }
             }
         }
-    };
+    }
 
     return (
         <Container>
@@ -230,216 +254,238 @@ const IssueReturnDropForm: FC<IIssueReturnDropFormProps> = (props) => {
                 justifyContent="center"
                 alignItems="center"
             >
-                <CustomButton
-                    onClick={onStartIssuingProcessButtonClick}
-                    label={startIssuingProcess ? 'Ausgabe abbrechen' : 'Ausgabe starten'}
-                    symbol={startIssuingProcess ? <Cancel /> : <RotateRight />}
-                    disabled={!disabled || inventoryForm.piecesStored <= 0 || startReturningProcess || startDroppingProcess}
-                />
-                {(!disabled || inventoryForm.piecesStored <= 0) && (
-                    <Tooltip
-                        title={
-                            'Eine Ausgabe ist nur dann möglich, wenn die "Stückzahl lagernd" mindestens 1 beträgt und der Gegenstand gerade nicht in Bearbeitung ist.'
-                        }
-                        sx={{ marginTop: '-1em', marginLeft: '-1.5em', marginRight: '0.5em' }}
-                    >
-                        <InfoRounded color="primary" />
-                    </Tooltip>
+                <Tooltip
+                    title={
+                        !isDisabled
+                            ? 'Eine Ausgabe ist nur dann möglich, wenn der Gegenstand gerade nicht in Bearbeitung ist.'
+                            : inventoryForm.piecesStored <= 0
+                              ? "Eine Ausgabe ist nur dann möglich, wenn die 'Stückzahl lagernd' mindestens 1 beträgt."
+                              : undefined
+                    }
+                    followCursor={true}
+                    enterDelay={500}
+                >
+                    <Box /* necessary for showing tooltip */>
+                        <CustomButton
+                            onClick={onStartIssuingProcessButtonClick}
+                            label={isStartIssuingProcess ? 'Ausgabe abbrechen' : 'Ausgabe starten'}
+                            symbol={isStartIssuingProcess ? <Cancel /> : <RotateRight />}
+                            isDisabled={!isDisabled || inventoryForm.piecesStored <= 0 || isStartReturningProcess || isStartDroppingProcess}
+                        />
+                    </Box>
+                </Tooltip>
+                <Tooltip
+                    title={
+                        !isDisabled
+                            ? 'Eine Rücknahme ist nur dann möglich, wenn der Gegenstand gerade nicht in Bearbeitung ist.'
+                            : inventoryForm.piecesIssued <= 0
+                              ? "Eine Rücknahme ist nur dann möglich, wenn die 'Stückzahl ausgegeben' mindestens 1 beträgt."
+                              : undefined
+                    }
+                    followCursor={true}
+                    enterDelay={500}
+                >
+                    <Box /* necessary for showing tooltip */>
+                        <CustomButton
+                            onClick={onStartReturningProcessButtonClick}
+                            label={isStartReturningProcess ? 'Rücknahme abbrechen' : 'Rücknahme starten'}
+                            symbol={isStartReturningProcess ? <Cancel /> : <RestartAlt />}
+                            isDisabled={!isDisabled || inventoryForm.piecesIssued <= 0 || isStartIssuingProcess || isStartDroppingProcess}
+                        />
+                    </Box>
+                </Tooltip>
+                <Tooltip
+                    title={
+                        !isDisabled
+                            ? 'Ein Ausscheiden ist nur dann möglich, wenn der Gegenstand gerade nicht in Bearbeitung ist.'
+                            : inventoryForm.piecesStored <= 0
+                              ? "Ein Ausscheiden ist nur dann möglich, wenn die 'Stückzahl lagernd' mindestens 1 beträgt."
+                              : undefined
+                    }
+                    followCursor={true}
+                    enterDelay={500}
+                >
+                    <Box /* necessary for showing tooltip */>
+                        <CustomButton
+                            onClick={onStartDroppingProcessButtonClick}
+                            label={isStartDroppingProcess ? 'Ausscheidung abbrechen' : 'Ausscheidung anfordern'}
+                            symbol={isStartDroppingProcess ? <Cancel /> : <DeleteForever />}
+                            isDisabled={!isDisabled || inventoryForm.piecesStored <= 0 || isStartIssuingProcess || isStartReturningProcess}
+                        />
+                    </Box>
+                </Tooltip>
+            </Grid>
+            <Box my={1} />
+            <Grid
+                container
+                direction="row"
+                justifyContent="center"
+                alignItems="center"
+            >
+                {isStartIssuingProcess && (
+                    <>
+                        <CustomTextField
+                            label="Stückzahl ausgegeben"
+                            value={pieces}
+                            setValue={(val) => {
+                                if (val === '') {
+                                    setPieces('');
+                                } else if (Number(val) < 1) {
+                                    setPieces('1');
+                                } else if (Number(val) > inventoryForm.piecesStored) {
+                                    setPieces(String(inventoryForm.piecesStored));
+                                } else {
+                                    setPieces(val);
+                                }
+                            }}
+                            isError={isPiecesError}
+                            type="number"
+                            isRequired={true}
+                            isDisabled={isSinglePieceItem}
+                        />
+                        <CustomTextField
+                            label="Ausgegeben an"
+                            value={text}
+                            setValue={setText}
+                            isError={isTextError}
+                            isRequired={true}
+                        />
+                        <CustomDatePicker
+                            label="Ausgabedatum"
+                            value={date}
+                            setValue={setDate}
+                            isError={isDateError}
+                            isRequired={true}
+                        />
+                        {!isSinglePieceItem && (
+                            <Grid
+                                container
+                                justifyContent="center"
+                                alignItems="center"
+                            >
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={isMergeIssuedToSame}
+                                            onChange={(e, checked) => setIsMergeIssuedToSame(checked)}
+                                        />
+                                    }
+                                    label="Zusammenführen, wenn mehrfach 'Ausgegeben an' dieselbe Person/Abteilung"
+                                />
+                            </Grid>
+                        )}
+                    </>
                 )}
-                <CustomButton
-                    onClick={onStartReturningProcessButtonClick}
-                    label={startReturningProcess ? 'Rücknahme abbrechen' : 'Rücknahme starten'}
-                    symbol={startReturningProcess ? <Cancel /> : <RestartAlt />}
-                    disabled={!disabled || inventoryForm.piecesIssued <= 0 || startIssuingProcess || startDroppingProcess}
-                />
-                {(!disabled || inventoryForm.piecesIssued <= 0) && (
-                    <Tooltip
-                        title={
-                            'Eine Rücknahme ist nur dann möglich, wenn die "Stückzahl ausgegeben" mindestens 1 beträgt und der Gegenstand gerade nicht in Bearbeitung ist.'
-                        }
-                        sx={{ marginTop: '-1em', marginLeft: '-1.5em', marginRight: '0.5em' }}
-                    >
-                        <InfoRounded color="primary" />
-                    </Tooltip>
+                {isStartReturningProcess && (
+                    <>
+                        {isSinglePieceItem ? (
+                            <CustomTextField
+                                label="Rücknahme von"
+                                value={inventoryForm.issuedTo}
+                                setValue={() => {}}
+                                isRequired={true}
+                                isDisabled={true}
+                            />
+                        ) : (
+                            <CustomAutocomplete
+                                options={returningOptions}
+                                optionKey="issuedTo"
+                                label="Rücknahme von"
+                                value={returningValue?.issuedTo ?? ''}
+                                setValue={(val) => {
+                                    setReturningValue(val as IReturningOptions);
+                                }}
+                                isError={isReturningValueError}
+                                isRequired={true}
+                            />
+                        )}
+                        <CustomTextField
+                            label="Stückzahl zurückgenommen"
+                            value={isSinglePieceItem ? '1' : pieces}
+                            setValue={(val) => {
+                                if (val === '') {
+                                    setPieces('');
+                                } else if (Number(val) < 1) {
+                                    setPieces('1');
+                                } else if (Number(val) > returningPiecesMax) {
+                                    setPieces(String(returningPiecesMax));
+                                } else {
+                                    setPieces(val);
+                                }
+                            }}
+                            isError={isPiecesError}
+                            type="number"
+                            isRequired={true}
+                            isDisabled={isSinglePieceItem || !returningValue}
+                        />
+                    </>
                 )}
-                <CustomButton
-                    onClick={onStartDroppingProcessButtonClick}
-                    label={startDroppingProcess ? 'Ausscheid. abbrechen' : 'Ausscheid. starten'}
-                    symbol={startDroppingProcess ? <Cancel /> : <DeleteForever />}
-                    disabled={!disabled || inventoryForm.piecesStored <= 0 || startIssuingProcess || startReturningProcess}
-                />
-                {(!disabled || inventoryForm.piecesStored <= 0) && (
-                    <Tooltip
-                        title={
-                            'Ein Ausscheiden ist nur dann möglich, wenn die "Stückzahl lagernd" mindestens 1 beträgt und der Gegenstand gerade nicht in Bearbeitung ist.'
-                        }
-                        sx={{ marginTop: '-1em', marginLeft: '-1.5em', marginRight: '0.5em' }}
-                    >
-                        <InfoRounded color="primary" />
-                    </Tooltip>
+                {isStartDroppingProcess && (
+                    <>
+                        <CustomTextField
+                            label="Stückzahl ausgeschieden"
+                            value={pieces}
+                            setValue={(val) => {
+                                if (val === '') {
+                                    setPieces('');
+                                } else if (Number(val) < 1) {
+                                    setPieces('1');
+                                } else if (Number(val) > inventoryForm.piecesStored) {
+                                    setPieces(String(inventoryForm.piecesStored));
+                                } else {
+                                    setPieces(val);
+                                }
+                            }}
+                            isError={isPiecesError}
+                            type="number"
+                            isRequired={true}
+                            isDisabled={isSinglePieceItem || !!inventoryForm.droppingQueue}
+                        />
+                        <CustomTextField
+                            label="Ausscheidegrund"
+                            value={text}
+                            setValue={setText}
+                            isError={isTextError}
+                            isRequired={true}
+                            isDisabled={!!inventoryForm.droppingQueue}
+                        />
+                        <CustomDatePicker
+                            label="Ausscheidedatum"
+                            value={date}
+                            setValue={setDate}
+                            isError={isDateError}
+                            isRequired={true}
+                            isDisabled={!!inventoryForm.droppingQueue}
+                        />
+                    </>
                 )}
             </Grid>
-            {startIssuingProcess && (
-                <Grid
-                    container
-                    direction="row"
-                    justifyContent="center"
-                    alignItems="center"
-                >
-                    <CustomTextField
-                        label="Stückzahl ausgegeben"
-                        value={pieces}
-                        setValue={(val) => {
-                            if (val === '') {
-                                setPieces('');
-                            } else if (Number(val) < 1) {
-                                setPieces('1');
-                            } else if (Number(val) > inventoryForm.piecesStored) {
-                                setPieces(String(inventoryForm.piecesStored));
-                            } else {
-                                setPieces(val);
-                            }
-                        }}
-                        error={piecesError}
-                        type="number"
-                        required={true}
-                        disabled={isSinglePieceItem}
+            <Grid
+                container
+                direction="column"
+                justifyContent="center"
+                alignItems="center"
+            >
+                {(isPiecesError || (isTextError && !text) || isDateError || (isStartReturningProcess && isReturningValueError)) && (
+                    <CustomAlert
+                        state="error"
+                        message="Pflichtfelder beachten!"
                     />
-                    <CustomTextField
-                        label="Ausgegeben an"
-                        value={text}
-                        setValue={setText}
-                        error={textError}
-                        required={true}
+                )}
+                {isTextCharError && (
+                    <CustomAlert
+                        state="error"
+                        message="Das Zeichen ~ ist im Textfeld nicht erlaubt!"
                     />
-                    <CustomDatePicker
-                        label="Ausgabedatum"
-                        value={date}
-                        setValue={setDate}
-                        error={dateError}
-                        required={true}
-                    />
-                </Grid>
-            )}
-            {startReturningProcess && (
-                <Grid
-                    container
-                    direction="row"
-                    justifyContent="center"
-                    alignItems="center"
-                >
-                    {isSinglePieceItem ? (
-                        <CustomTextField
-                            label="Rücknahme von"
-                            value={inventoryForm.issuedTo}
-                            setValue={() => {}}
-                            required={true}
-                            disabled={true}
-                        />
-                    ) : (
-                        <CustomAutocomplete
-                            options={returningOptions}
-                            optionKey="issuedTo"
-                            label="Rücknahme von"
-                            value={returningValue?.issuedTo ?? ''}
-                            setValue={(val) => {
-                                setReturningValue(val as IReturningOptions);
-                            }}
-                            error={returningValueError}
-                            required={true}
-                        />
-                    )}
-                    <CustomTextField
-                        label="Stückzahl zurückgenommen"
-                        value={isSinglePieceItem ? '1' : pieces}
-                        setValue={(val) => {
-                            if (val === '') {
-                                setPieces('');
-                            } else if (Number(val) < 1) {
-                                setPieces('1');
-                            } else if (Number(val) > returningPiecesMax) {
-                                setPieces(String(returningPiecesMax));
-                            } else {
-                                setPieces(val);
-                            }
-                        }}
-                        error={piecesError}
-                        type="number"
-                        required={true}
-                        disabled={isSinglePieceItem || !returningValue}
-                    />
-                </Grid>
-            )}
-            {startDroppingProcess && (
-                <Grid
-                    container
-                    direction="row"
-                    justifyContent="center"
-                    alignItems="center"
-                >
-                    <CustomTextField
-                        label="Stückzahl ausgeschieden"
-                        value={pieces}
-                        setValue={(val) => {
-                            if (val === '') {
-                                setPieces('');
-                            } else if (Number(val) < 1) {
-                                setPieces('1');
-                            } else if (Number(val) > inventoryForm.piecesStored) {
-                                setPieces(String(inventoryForm.piecesStored));
-                            } else {
-                                setPieces(val);
-                            }
-                        }}
-                        error={piecesError}
-                        type="number"
-                        required={true}
-                        disabled={isSinglePieceItem}
-                    />
-                    <CustomTextField
-                        label="Ausscheidegrund"
-                        value={text}
-                        setValue={setText}
-                        error={textError}
-                        required={true}
-                    />
-                    <CustomDatePicker
-                        label="Ausscheidedatum"
-                        value={date}
-                        setValue={setDate}
-                        error={dateError}
-                        required={true}
-                    />
-                </Grid>
-            )}
-            {(piecesError || (textError && !text) || dateError || (startReturningProcess && returningValueError)) && (
-                <CustomAlert
-                    state="error"
-                    message="Pflichtfelder beachten!"
-                />
-            )}
-            {textCharError && (
-                <CustomAlert
-                    state="error"
-                    message="Das Zeichen ~ ist im Textfeld nicht erlaubt!"
-                />
-            )}
-            {(startIssuingProcess || startReturningProcess || startDroppingProcess) && (
-                <Grid
-                    container
-                    direction="row"
-                    justifyContent="center"
-                    alignItems="center"
-                >
+                )}
+                {(isStartIssuingProcess || isStartReturningProcess || isStartDroppingProcess) && (
                     <CustomButton
                         label="Absenden"
                         onClick={onSendButtonClick}
                         symbol={<CheckCircle />}
                     />
-                </Grid>
-            )}
+                )}
+            </Grid>
         </Container>
     );
-};
-
-export default IssueReturnDropForm;
+}

@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { ILocation } from 'components/interfaces';
+import { Box } from '@mui/material';
 
 interface IDataTableLocationProps {
     locationList: ILocation[];
@@ -8,11 +8,21 @@ interface IDataTableLocationProps {
 
 const columns: GridColDef[] = [{ field: 'locationName', headerName: 'Standort', width: 400 }];
 
-const DataTableLocation: FC<IDataTableLocationProps> = (props) => {
+export default function DataTableLocation(props: IDataTableLocationProps) {
     const { locationList } = props;
 
     return (
-        <div style={locationList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+        <Box
+            style={
+                locationList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 505 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 505
+                      }
+            }
+        >
             <DataGrid
                 rows={locationList.map((location: ILocation) => ({
                     id: location.id,
@@ -21,13 +31,17 @@ const DataTableLocation: FC<IDataTableLocationProps> = (props) => {
                 autoHeight={locationList.length < 15}
                 density="compact"
                 columns={columns}
-                pageSize={50}
-                rowsPerPageOptions={[50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 100
+                        }
+                    }
+                }}
+                pageSizeOptions={[100]}
                 hideFooterSelectedRowCount
-                components={{ Toolbar: GridToolbar }}
+                slots={{ toolbar: GridToolbar }}
             />
-        </div>
+        </Box>
     );
-};
-
-export default DataTableLocation;
+}

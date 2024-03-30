@@ -1,0 +1,23 @@
+.video {
+    width: auto;
+    height: auto;
+    aspect-ratio: initial;
+    max-width: 460px;
+    max-height: 460px;
+    margin: 20px 10px 10px 10px;
+    border: 1px solid #635C5B;
+}
+
+@media screen and (min-width: 320px) {
+    .video {
+        max-width: 300px;
+        max-height: 200px;
+    }
+}
+
+@media screen and (min-width: 480px) {
+    .video {
+        max-width: 460px;
+        max-height: 300px;
+    }
+}

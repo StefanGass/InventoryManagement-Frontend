@@ -4,7 +4,7 @@ const useFormValidation = (
     form: GenericObject | null,
     fieldList: IFormValidation[],
     setFieldList: (list: IFormValidation[]) => void,
-    everyFilledOut?: boolean
+    isEveryFieldFilledOut?: boolean
 ) => {
     let copiedFieldList = [...fieldList];
     if (form) {
@@ -14,7 +14,7 @@ const useFormValidation = (
         });
         setFieldList(copiedFieldList);
     }
-    if (everyFilledOut) {
+    if (isEveryFieldFilledOut) {
         return fieldList.some((field) => field.error) && fieldList.some((field) => !field.error);
     }
     return fieldList.some((field) => field.error);

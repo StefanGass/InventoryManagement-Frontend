@@ -1,6 +1,6 @@
 import { IDepartment, IDepartmentMember, IDepartmentMemberConverted, IObjectToSend, IUser } from 'components/interfaces';
-import { FC, MouseEvent, useEffect, useState } from 'react';
-import { Box, Grid, Typography } from '@mui/material';
+import { MouseEvent, useContext, useEffect, useState } from 'react';
+import { Box } from '@mui/material';
 import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
 import { Add } from '@mui/icons-material';
 import CustomButton from 'components/form-fields/CustomButton';
@@ -8,17 +8,21 @@ import useIsFirstRender from 'hooks/useIsFirstRender';
 import useFormValidation from 'hooks/useFormValidation';
 import DepartmentUserTableForm from 'components/forms/DepartmentUserTableForm';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import userManagementService from 'service/userManagementService';
+import inventoryManagementService from 'service/inventoryManagementService';
+import { UserContext } from '../../../pages/_app';
+import CustomHeading2 from 'components/layout/CustomHeading2';
 
-interface IPropertyFormDepartment {
+interface IParameterFormDepartmentProps {
     userId: number;
     departmentList: IDepartment[];
-    addNewDepartmentSuccessfulAlert: boolean;
-    addNewDepartmentDuplicateErrorAlert: boolean;
+    isAddNewDepartmentSuccessfulAlert: boolean;
+    isAddNewDepartmentDuplicateErrorAlert: boolean;
     onClick: (e: MouseEvent<HTMLButtonElement>, objectToSend: IObjectToSend | null, tableToFetch: string) => void;
-    setLoading: (bool: boolean) => void;
-    setServerError: (bool: boolean) => void;
-    setAddNewDepartmentSuccessfulAlert: (bool: boolean) => void;
-    setAddNewDepartmentDuplicateErrorAlert: (bool: boolean) => void;
+    setIsLoading: (bool: boolean) => void;
+    setIsServerError: (bool: boolean) => void;
+    setIsAddNewDepartmentSuccessfulAlert: (bool: boolean) => void;
+    setIsAddNewDepartmentDuplicateErrorAlert: (bool: boolean) => void;
 }
 
 const defaultForm: { department: IDepartment | null; user: IUser | null } = {
@@ -28,14 +32,15 @@ const defaultForm: { department: IDepartment | null; user: IUser | null } = {
 
 const defaultValidation = [{ name: 'user', error: false }];
 
-const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
-    const { userId, departmentList, setLoading, setServerError } = props;
+export default function ParameterFormDepartment(props: IParameterFormDepartmentProps) {
+    const { userId, departmentList, setIsLoading, setIsServerError } = props;
+    const { authHeaders } = useContext(UserContext);
 
     const [form, setForm] = useState(JSON.parse(JSON.stringify(defaultForm)));
     const [formValidation, setFormValidation] = useState(JSON.parse(JSON.stringify(defaultValidation)));
     const [isSend, setIsSend] = useState(false);
-    const [addMemberSuccessfulAlert, setAddMemberSuccessfulAlert] = useState(false);
-    const [addMemberDuplicateErrorAlert, setAddMemberDuplicateErrorAlert] = useState(false);
+    const [isAddMemberSuccessfulAlert, setIsAddMemberSuccessfulAlert] = useState(false);
+    const [isAddMemberDuplicateErrorAlert, setIsAddMemberDuplicateErrorAlert] = useState(false);
 
     const [allUserList, setAllUserList] = useState<IUser[]>([]);
     const [usersToChooseFrom, setUsersToChooseFrom] = useState<IDepartmentMemberConverted[]>([]);
@@ -43,55 +48,39 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
 
     const isFirstRender = useIsFirstRender();
 
-    const handleError = () => {
-        setServerError(true);
-        setLoading(false);
-    };
+    function handleError() {
+        setIsServerError(true);
+        setIsLoading(false);
+    }
 
     useEffect(() => {
         if (!isFirstRender && isSend) {
             useFormValidation(form, formValidation, setFormValidation);
-            setAddMemberSuccessfulAlert(false);
-            setAddMemberDuplicateErrorAlert(false);
+            setIsAddMemberSuccessfulAlert(false);
+            setIsAddMemberDuplicateErrorAlert(false);
         }
     }, [form.user]);
 
     useEffect(() => {
         if (!isFirstRender) {
-            setLoading(true);
+            setIsLoading(true);
             fetchAndMergeChosenDepartmentWithUserList();
-            setLoading(false);
+            setIsLoading(false);
             setFormValidation(JSON.parse(JSON.stringify(defaultValidation)));
         }
     }, [form.department]);
 
     useEffect(() => {
-        fetch(`${process.env.HOSTNAME}/api/usermanagement/admin/${userId}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        }).then((response) => {
-            if (response.ok) {
-                response
-                    .json()
-                    .then((result: IUser[]) => {
-                        let userList: IDepartmentMemberConverted[] = [];
-                        result.map((user) => {
-                            userList.push({
-                                id: user.id,
-                                name: user.lastName + ' ' + user.firstName
-                            });
-                        });
-                        setAllUserList(result);
-                        setUsersToChooseFrom(userList);
-                        setLoading(false);
-                    })
-                    .catch(() => {
-                        handleError();
-                    });
-            } else {
+        userManagementService
+            .getAllUsers(userId, authHeaders)
+            .then((result) => {
+                setAllUserList(result);
+                setUsersToChooseFrom(userManagementService.convertUserToDepartmentMemberConverted(result));
+                setIsLoading(false);
+            })
+            .catch(() => {
                 handleError();
-            }
-        });
+            });
     }, []);
 
     const mergeUserListWithDepartmentMemberList = (departmentMemberList: IDepartmentMember[], allUserList: IUser[]) => {
@@ -110,7 +99,7 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
         return mergedUserList;
     };
 
-    const fetchAndMergeChosenDepartmentWithUserList = () => {
+    function fetchAndMergeChosenDepartmentWithUserList() {
         if (form.department) {
             fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/` + form.department.id, {
                 method: 'GET',
@@ -135,13 +124,13 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                     handleError();
                 });
         }
-    };
+    }
 
-    const onAddMemberButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    function onAddMemberButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
         useFormValidation(form, formValidation, setFormValidation);
-        setAddMemberSuccessfulAlert(false);
-        setAddMemberDuplicateErrorAlert(false);
+        setIsAddMemberSuccessfulAlert(false);
+        setIsAddMemberDuplicateErrorAlert(false);
         setIsSend(true);
         if (form.department?.id && form.user?.id) {
             fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/member/` + form.department.id, {
@@ -152,114 +141,77 @@ const ParameterFormDepartment: FC<IPropertyFormDepartment> = (props) => {
                 .then((response) => {
                     if (response.ok) {
                         fetchAndMergeChosenDepartmentWithUserList();
-                        setAddMemberSuccessfulAlert(true);
+                        setIsAddMemberSuccessfulAlert(true);
                     } else {
-                        setAddMemberDuplicateErrorAlert(true);
+                        setIsAddMemberDuplicateErrorAlert(true);
                     }
                 })
                 .catch(() => {
                     handleError();
                 });
         }
-    };
+    }
 
     return (
-        <Grid
-            container
-            justifyContent="center"
-        >
-            <Grid>
-                <Typography
-                    variant="h2"
-                    align="center"
-                    marginTop="1.5em"
-                >
-                    Bestehende ändern
-                </Typography>
-                <Typography align="center">(User:innen hinzufügen / enfernen)</Typography>
-                <Box sx={{ my: 2 }} />
-                <Grid
-                    container
-                    justifyContent="center"
-                >
+        <>
+            <CustomHeading2 text="Abteilung wählen" />
+            <Box my={0.5} />
+            <CustomAutocomplete
+                options={departmentList}
+                optionKey="departmentName"
+                label="Abteilung"
+                setValue={(val) => setForm((oldForm) => ({ ...oldForm, department: val as IDepartment }))}
+                value={form.department?.departmentName ?? ''}
+                isError={false}
+            />
+            {form.department && (
+                <>
+                    <Box my={1.5} />
+                    <CustomHeading2 text="Benutzer:in zu Abteilung hinzufügen" />
+                    <Box my={0.5} />
                     <CustomAutocomplete
-                        options={departmentList}
-                        optionKey="departmentName"
-                        label="Abteilung"
-                        setValue={(val) => setForm((oldForm) => ({ ...oldForm, department: val as IDepartment }))}
-                        value={form.department?.departmentName ?? ''}
-                        error={false}
+                        options={usersToChooseFrom}
+                        optionKey="name"
+                        label="Benutzer:in"
+                        setValue={(val) => setForm((oldForm) => ({ ...oldForm, user: val as IUser }))}
+                        isError={formValidation.some((field) => field.error) ?? false}
                     />
-                </Grid>
-                {form.department && (
-                    <Grid
-                        container
-                        justifyContent="center"
-                    >
+                    <CustomAlert
+                        state="warning"
+                        message="ACHTUNG: Nach dem Hinzufügen oder Entfernen muss der:die betroffene Benutzer:in die Seite neu laden!"
+                    />
+                    {isAddMemberSuccessfulAlert && (
                         <CustomAlert
-                            state="warning"
-                            message="ACHTUNG: Nach dem Hinzufügen oder Entfernen muss der:die betroffene User:in die Seite neu laden!"
+                            state="success"
+                            message="Benutzer:in erfolgreich hinzugefügt!"
                         />
-                        <Box sx={{ my: 3 }} />
-                        <Typography
-                            variant="h2"
-                            align="center"
-                            marginTop="1.5em"
-                        >
-                            Hinzufügen / entfernen
-                        </Typography>
-                        <Box sx={{ my: 5 }} />
-                        <Grid
-                            container
-                            justifyContent="center"
-                        >
-                            <CustomAutocomplete
-                                options={usersToChooseFrom}
-                                optionKey="name"
-                                label="User"
-                                setValue={(val) => setForm((oldForm) => ({ ...oldForm, user: val as IUser }))}
-                                error={formValidation.some((field) => field.error) ?? false}
-                            />
-                        </Grid>
-                        {addMemberSuccessfulAlert && (
-                            <CustomAlert
-                                state="success"
-                                message="User:in erfolgreich hinzugefügt!"
-                            />
-                        )}
-                        {formValidation.some((field) => field.error) && (
-                            <CustomAlert
-                                state="error"
-                                message="Mindestens ein:e User:in auswählen!"
-                            />
-                        )}
-                        {addMemberDuplicateErrorAlert && (
-                            <CustomAlert
-                                state="error"
-                                message="Ein:e User:in kann maximal zu einer Abteilung hinzugefügt werden!
-                                Bitte den/die User:in zunächst von der ursprünglichen Abteilung entfernen!"
-                            />
-                        )}
-                        <Grid>
-                            <CustomButton
-                                onClick={onAddMemberButtonClick}
-                                label="Hinzufügen"
-                                symbol={<Add />}
-                            />
-                        </Grid>
-                        <Box sx={{ my: 7 }} />
-                        <DepartmentUserTableForm
-                            userList={userOptionsList}
-                            department={form.department}
-                            fetchAndMergeChosenDepartmentWithUserList={fetchAndMergeChosenDepartmentWithUserList}
-                            setIsSend={setIsSend}
-                            handleError={handleError}
+                    )}
+                    {isAddMemberDuplicateErrorAlert && (
+                        <CustomAlert
+                            state="error"
+                            message="Ein:e Benutzer:in kann maximal zu einer Abteilung hinzugefügt werden!
+                                Bitte den:die Benutzer:in zunächst von der ursprünglichen Abteilung entfernen!"
                         />
-                    </Grid>
-                )}
-            </Grid>
-        </Grid>
+                    )}
+                    <CustomButton
+                        onClick={onAddMemberButtonClick}
+                        label="Hinzufügen"
+                        symbol={<Add />}
+                    />
+                    <Box my={1.5} />
+                    <CustomHeading2 text="Benutzer:in von Abteilung entfernen" />
+                    <Box my={1} />
+                    <DepartmentUserTableForm
+                        userList={userOptionsList}
+                        department={form.department}
+                        fetchAndMergeChosenDepartmentWithUserList={fetchAndMergeChosenDepartmentWithUserList}
+                        setIsSend={setIsSend}
+                        handleError={handleError}
+                        isDepartmentRequiredForFetch={true}
+                        getRemoveCall={(department, member) => inventoryManagementService.deleteDepartmentMember(department, member)}
+                    />
+                </>
+            )}
+        </>
     );
-};
-
-export default ParameterFormDepartment;
+}

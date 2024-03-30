@@ -1,6 +1,5 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { Grid } from '@mui/material';
+import {Box, Grid} from '@mui/material';
 import { IChartItem } from 'components/interfaces';
 
 interface IDataTableTypeChartProps {
@@ -18,7 +17,7 @@ const columns: GridColDef[] = [
     { field: 'departments', headerName: 'Abteilung(en)', width: 300 }
 ];
 
-const DataTableInventory: FC<IDataTableTypeChartProps> = (props) => {
+export default function DataTableInventory(props: IDataTableTypeChartProps) {
     const { chartItemList } = props;
 
     return (
@@ -27,7 +26,7 @@ const DataTableInventory: FC<IDataTableTypeChartProps> = (props) => {
             width="95%"
             margin="auto"
         >
-            <div style={chartItemList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+            <Box style={chartItemList.length < 15 ? { height: 'auto' } : { height: 700 }}>
                 <DataGrid
                     rows={chartItemList.map((item: IChartItem) => ({
                         id: item.id,
@@ -43,14 +42,18 @@ const DataTableInventory: FC<IDataTableTypeChartProps> = (props) => {
                     autoHeight={chartItemList.length < 15}
                     density="compact"
                     columns={columns}
-                    pageSize={75}
-                    rowsPerPageOptions={[75]}
+                    initialState={{
+                        pagination: {
+                            paginationModel: {
+                                pageSize: 100
+                            }
+                        }
+                    }}
+                    pageSizeOptions={[100]}
                     hideFooterSelectedRowCount
-                    components={{ Toolbar: GridToolbar }}
+                    slots={{ toolbar: GridToolbar }}
                 />
-            </div>
+            </Box>
         </Grid>
     );
-};
-
-export default DataTableInventory;
+}

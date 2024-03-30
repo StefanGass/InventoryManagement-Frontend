@@ -1,4 +1,4 @@
-import { FC, MouseEvent, useContext, useEffect, useState } from 'react';
+import { MouseEvent, useContext, useEffect, useState } from 'react';
 import { Container, Grid, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import CustomTextField from 'components/form-fields/CustomTextField';
@@ -6,7 +6,7 @@ import { GenericObject, IPrinter } from 'components/interfaces';
 import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
 import CustomButton from 'components/form-fields/CustomButton';
 import { Print } from '@mui/icons-material';
-import { UserContext } from 'pages/_app';
+import { UserContext } from '../../../../pages/_app';
 import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IPrintingFormProps {
@@ -15,26 +15,26 @@ interface IPrintingFormProps {
     showHeadline: boolean;
 }
 
-const PrintingForm: FC<IPrintingFormProps> = (props) => {
+export default function PrintingForm(props: IPrintingFormProps) {
     const { inventoryId, printerList, showHeadline } = props;
 
     const { userId } = useContext(UserContext);
 
     const [printer, setPrinter] = useState<string | GenericObject | null>(printerList[0]);
-    const [printerError, setPrinterError] = useState(false);
+    const [isPrinterError, setIsPrinterError] = useState(false);
     const [piecesToPrint, setPiecesToPrint] = useState(1);
-    const [piecesToPrintError, setPiecesToPrintError] = useState(false);
+    const [isPiecesToPrintError, setIsPiecesToPrintError] = useState(false);
 
-    const [printSuccessful, setPrintSuccessful] = useState(false);
-    const [printingError, setPrintingError] = useState(false);
+    const [isPrintSuccessful, setIsPrintSuccessful] = useState(false);
+    const [isPrintingError, setIsPrintingError] = useState(false);
 
     useEffect(() => {
-        setPrintSuccessful(false);
-        printer && setPrinterError(false);
-        piecesToPrint > 0 && setPiecesToPrintError(false);
+        setIsPrintSuccessful(false);
+        printer && setIsPrinterError(false);
+        piecesToPrint > 0 && setIsPiecesToPrintError(false);
     }, [printer, piecesToPrint]);
 
-    const onButtonClick = async (e: MouseEvent<HTMLButtonElement>) => {
+    async function onButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
         if (printer && piecesToPrint > 0) {
             let tempPrinter = printer as IPrinter;
@@ -47,23 +47,23 @@ const PrintingForm: FC<IPrintingFormProps> = (props) => {
             )
                 .then((response) => {
                     if (response.ok) {
-                        setPrintSuccessful(true);
+                        setIsPrintSuccessful(true);
                     } else {
-                        setPrintingError(true);
+                        setIsPrintingError(true);
                     }
                 })
                 .catch((error) => {
-                    setPrintingError(true);
+                    setIsPrintingError(true);
                     console.log(error);
                 });
         } else {
-            !printer && setPrinterError(true);
-            piecesToPrint < 1 && setPiecesToPrintError(true);
+            !printer && setIsPrinterError(true);
+            piecesToPrint < 1 && setIsPiecesToPrintError(true);
         }
-    };
+    }
 
     return (
-        <Container maxWidth={'md'}>
+        <Container maxWidth="md">
             {showHeadline && (
                 <Grid
                     container
@@ -93,8 +93,8 @@ const PrintingForm: FC<IPrintingFormProps> = (props) => {
                     label="Drucker auswählen"
                     value={printer?.['printerName'] ?? ''}
                     setValue={setPrinter}
-                    required={true}
-                    error={printerError}
+                    isRequired={true}
+                    isError={isPrinterError}
                 />
                 <CustomTextField
                     label="Stückzahl Etiketten"
@@ -106,29 +106,29 @@ const PrintingForm: FC<IPrintingFormProps> = (props) => {
                             setPiecesToPrint(Number(val));
                         }
                     }}
-                    error={piecesToPrintError}
-                    required={true}
+                    isError={isPiecesToPrintError}
+                    isRequired={true}
                     type="number"
                 />
-                {printSuccessful && (
+                {isPrintSuccessful && (
                     <CustomAlert
                         state="success"
                         message="Druck erfolgreich!"
                     />
                 )}
-                {printingError && (
+                {isPrintingError && (
                     <CustomAlert
                         state="error"
                         message="Da lief etwas schief - bitte an die IT wenden!"
                     />
                 )}
-                {printerError && (
+                {isPrinterError && (
                     <CustomAlert
                         state="error"
                         message="Drucker auswählen!"
                     />
                 )}
-                {piecesToPrintError && (
+                {isPiecesToPrintError && (
                     <CustomAlert
                         state="error"
                         message="Mehr als 0 Stück auswählen!"
@@ -142,6 +142,4 @@ const PrintingForm: FC<IPrintingFormProps> = (props) => {
             </Grid>
         </Container>
     );
-};
-
-export default PrintingForm;
+}

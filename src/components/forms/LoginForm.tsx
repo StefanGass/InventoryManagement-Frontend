@@ -1,21 +1,35 @@
-import { FC, FormEvent, useContext, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import { Box, Button, Container, Grid, TextField, Typography } from '@mui/material';
 import { IDepartment, IUser } from 'components/interfaces';
-import { UserContext } from 'pages/_app';
-import { useRouter } from 'next/router';
+import { UserContext } from '../../../pages/_app';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import { Login } from '@mui/icons-material';
+import { routes } from 'constants/routes';
+import inventoryManagementService from 'service/inventoryManagementService';
 
 const base64 = require('base-64');
 
-const LoginForm: FC = () => {
-    const { setLogin, setUserId, setFirstName, setLastName, setDepartmentId, setAdmin, setSuperAdmin, setAdminMode, setDepartmentName } =
-        useContext(UserContext);
+export default function LoginForm() {
+    const {
+        setAuthHeaders,
+        setIsAuthenticated,
+        setAvailableRoutesList,
+        setUserId,
+        setFirstName,
+        setLastName,
+        setDepartmentId,
+        setIsDroppingReviewer,
+        setIsAdmin,
+        setIsSuperAdmin,
+        setIsAdminModeActivated,
+        setDepartmentName
+    } = useContext(UserContext);
 
-    const [loginError, setLoginError] = useState(false);
-    const [serverError, setServerError] = useState(false);
-    const router = useRouter();
+    const [isLoginError, setIsLoginError] = useState(false);
+    const [isPermissionError, setIsPermissionError] = useState(false);
+    const [isServerError, setIsServerError] = useState(false);
 
-    const fetchDepartment = (userId) => {
+    function fetchDepartment(userId, isAdmin, isSuperAdmin) {
         fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/user/${userId}`, {
             method: 'GET'
         })
@@ -24,159 +38,179 @@ const LoginForm: FC = () => {
                 if (result.id && result.departmentName) {
                     setDepartmentId(result.id);
                     setDepartmentName(result.departmentName);
+                    fetchDepartmentMember(userId);
+                } else if (isAdmin || isSuperAdmin) {
+                    setIsAdminModeActivated(true);
                 }
             })
             .catch((error) => {
                 console.log(error);
             })
             .finally(() => {
-                setLogin(true);
+                // this needs to be done here, else an admin without a department won't be able to log in
+                setIsAuthenticated(true);
+                setAvailableRoutesList(routes);
+            });
+    }
+
+    const fetchDepartmentMember = (userId: number) => {
+        inventoryManagementService
+            .getDepartmentMember(userId)
+            .then((result) => {
+                setIsDroppingReviewer(result.droppingReviewer);
+            })
+            .catch((error) => {
+                console.log(error);
             });
     };
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    function handleLoginSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        setIsLoginError(false);
+        setIsPermissionError(false);
+        setIsServerError(false);
         const data = new FormData(event.currentTarget);
         let headers = new Headers();
-        headers.append('Authorization', 'Basic ' + base64.encode(String(data.get('username')) + ':' + String(data.get('password'))));
-        // to prevent authentication pop-up window
-        headers.append('X-Requested-With', 'XMLHttpRequest');
-        setLoginError(false);
-        setServerError(false);
-        fetch(`${process.env.HOSTNAME}/api/usercontrol`, {
+        headers.append('Authorization', 'Basic ' + base64.encode(String(data.get('username')).trim() + ':' + String(data.get('password'))));
+        headers.append('X-Requested-With', 'XMLHttpRequest'); // to prevent authentication pop-up window
+        setAuthHeaders(new Headers(headers)); // make a copy of the headers so the Content-Type is not included by default
+        headers.append('Content-Type', 'application/json');
+        fetch(`${process.env.HOSTNAME}/api/usermanagement/user/${base64.encode(String(data.get('username')).trim())}`, {
             method: 'GET',
             headers: headers
         })
             .then((response) => {
                 if (response.ok) {
-                    // match the user with the database
-                    fetch(`${process.env.HOSTNAME}/api/usermanagement/user/${base64.encode(String(data.get('username')).replace(/ /g, '_'))}`)
-                        .then((res) => res.json())
-                        .then((result: IUser) => {
+                    response.json().then((result: IUser) => {
+                        if (result.authInventoryManagement || result.admin || result.superAdmin) {
                             setUserId(result.id);
                             setFirstName(result.firstName);
                             setLastName(result.lastName);
-                            setAdmin(result.admin);
-                            setSuperAdmin(result.superAdmin);
-                            if (result.admin || result.superAdmin) {
-                                setAdminMode(true);
-                            } else {
-                                setAdminMode(false);
-                            }
-                            fetchDepartment(result.id);
-                            if (!router.pathname.includes('[id]')) {
-                                // to force password saving prompt
-                                router.push(router.pathname);
-                            }
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            setServerError(true);
-                        });
+                            setIsAdmin(result.admin);
+                            setIsSuperAdmin(result.superAdmin);
+                            fetchDepartment(result.id, result.admin, result.superAdmin);
+                        } else {
+                            setIsPermissionError(true);
+                        }
+                    });
                 } else {
-                    console.log('Wrong credentials');
-                    setLoginError(true);
+                    if (response.status === 401) {
+                        setIsLoginError(true);
+                    } else {
+                        setIsServerError(true);
+                    }
                 }
             })
             .catch((error) => {
                 console.log(error);
-                setServerError(true);
+                setIsServerError(true);
             });
-    };
+    }
 
     return (
-        <Container maxWidth="sm">
-            <Box sx={{ my: 12 }}>
-                <Typography
-                    variant="h1"
-                    align="center"
+        <Container
+            maxWidth="sm"
+            sx={{ my: 12 }}
+        >
+            <Typography
+                variant="h1"
+                align="center"
+            >
+                Inventar-Management
+            </Typography>
+            <Grid
+                container
+                direction="column"
+                alignItems="center"
+                justifyContent="center"
+            >
+                <Box
+                    component="form"
+                    onSubmit={handleLoginSubmit}
+                    noValidate
+                    sx={{ mt: 1 }}
                 >
-                    Anmelden
-                </Typography>
-                <Grid
-                    container
-                    direction="column"
-                    alignItems="center"
-                    justifyContent="center"
-                >
-                    <Box
-                        component="form"
-                        onSubmit={handleSubmit}
-                        noValidate
-                        sx={{ mt: 1 }}
-                    >
-                        <Grid>
-                            <TextField
-                                variant="outlined"
-                                margin="normal"
-                                required
+                    <Grid>
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            style={{
+                                width: '20em'
+                            }}
+                            id="username"
+                            label="Benutzername"
+                            name="username"
+                            autoComplete="username"
+                            autoFocus
+                            error={isLoginError}
+                        />
+                    </Grid>
+                    <Grid>
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            style={{
+                                width: '20em'
+                            }}
+                            name="password"
+                            label="Passwort"
+                            type="password"
+                            id="password"
+                            autoComplete="current-password"
+                            error={isLoginError}
+                        />
+                    </Grid>
+                    {isLoginError && (
+                        <CustomAlert
+                            state="error"
+                            message="Zugangsdaten unbekannt!"
+                        />
+                    )}
+                    {isPermissionError && (
+                        <CustomAlert
+                            state="warning"
+                            message={
+                                'Du besitzt nicht die nötigen Berechtigungen, die zum Login nötig sind. ' +
+                                'Wende dich an die IT, um die entsprechenden Zugriffsrechte anzufordern.'
+                            }
+                        />
+                    )}
+                    {isServerError && (
+                        <CustomAlert
+                            state="warning"
+                            message="Serverfehler - bitte kontaktiere die IT!"
+                        />
+                    )}
+                    <Grid>
+                        <Grid
+                            container
+                            direction="column"
+                            alignItems="center"
+                            justifyContent="center"
+                        >
+                            <Button
+                                type="submit"
                                 fullWidth
                                 style={{
-                                    width: '20em'
+                                    height: '3em',
+                                    marginTop: '1em'
                                 }}
-                                id="username"
-                                label="Benutzername"
-                                name="username"
-                                autoComplete="username"
-                                autoFocus
-                                error={loginError}
-                            />
-                        </Grid>
-                        <Grid>
-                            <TextField
-                                variant="outlined"
-                                margin="normal"
-                                required
-                                fullWidth
-                                style={{
-                                    width: '20em'
-                                }}
-                                name="password"
-                                label="Passwort"
-                                type="password"
-                                id="password"
-                                autoComplete="current-password"
-                                error={loginError}
-                            />
-                        </Grid>
-                        {loginError && (
-                            <CustomAlert
-                                state="error"
-                                message="Zugangsdaten unbekannt!"
-                            />
-                        )}
-                        {serverError && (
-                            <CustomAlert
-                                state="warning"
-                                message="Serverfehler - bitte kontaktiere die IT!"
-                            />
-                        )}
-                        <Grid>
-                            <Grid
-                                container
-                                direction="column"
-                                alignItems="center"
-                                justifyContent="center"
+                                variant="contained"
                             >
-                                <Button
-                                    type="submit"
-                                    fullWidth
-                                    style={{
-                                        width: '22.5em',
-                                        marginTop: '1em'
-                                    }}
-                                    variant="contained"
-                                    sx={{ mt: 3, mb: 2 }}
-                                >
-                                    Anmelden
-                                </Button>
-                            </Grid>
+                                <Login
+                                    fontSize="small"
+                                    sx={{ marginRight: '0.3em' }}
+                                />
+                                ANMELDEN
+                            </Button>
                         </Grid>
-                    </Box>
-                </Grid>
-            </Box>
+                    </Grid>
+                </Box>
+            </Grid>
         </Container>
     );
-};
-
-export default LoginForm;
+}

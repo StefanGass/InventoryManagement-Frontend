@@ -1,12 +1,11 @@
 import { Alert, Grid, Stack } from '@mui/material';
-import { FC } from 'react';
 
 interface ICustomAlertProps {
-    state: 'success' | 'warning' | 'error';
+    state: 'success' | 'warning' | 'error' | 'info';
     message: string;
 }
 
-const CustomAlert: FC<ICustomAlertProps> = (props) => {
+export default function CustomAlert(props: ICustomAlertProps) {
     const { state, message } = props;
     return (
         <Grid
@@ -25,6 +24,4 @@ const CustomAlert: FC<ICustomAlertProps> = (props) => {
             </Stack>
         </Grid>
     );
-};
-
-export default CustomAlert;
+}

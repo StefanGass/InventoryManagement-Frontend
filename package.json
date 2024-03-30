@@ -3,7 +3,7 @@
     "author": "Stefan Gass; until release 22.06.1: Stefan Gass, Isabella Zaby",
     "description": "In cooperation with the University of Applied Sciences Burgenland, department Information Technology",
     "license": "MIT",
-    "version": "23.03.1",
+    "version": "23.10.0",
     "private": true,
     "scripts": {
         "dev": "next dev -p 3004",
@@ -13,29 +13,29 @@
         "type-check": "tsc"
     },
     "dependencies": {
-        "@emotion/cache": "^11.10.5",
-        "@emotion/react": "^11.10.5",
-        "@emotion/server": "^11.10.0",
-        "@emotion/styled": "^11.10.5",
-        "@mui/icons-material": "^5.11.0",
-        "@mui/material": "^5.11.7",
-        "@mui/x-data-grid": "^5.17.21",
-        "@mui/x-date-pickers": "^5.0.16",
+        "@emotion/cache": "^11.11.0",
+        "@emotion/react": "^11.11.1",
+        "@emotion/server": "^11.11.0",
+        "@emotion/styled": "^11.11.0",
+        "@mui/icons-material": "^5.14.18",
+        "@mui/material": "^5.14.18",
+        "@mui/x-data-grid": "^6.18.1",
+        "@mui/x-date-pickers": "^6.18.1",
         "base-64": "^1.0.0",
-        "date-fns": "^2.29.3",
+        "date-fns": "^2.30.0",
         "jsqr": "^1.4.0",
-        "next": "^13.1.6",
+        "next": "^14.0.3",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "qrcode.react": "^3.1.0",
-        "recharts": "2.3.2",
-        "signature_pad": "^4.1.4"
+        "recharts": "2.9.3",
+        "signature_pad": "^4.1.6"
     },
     "devDependencies": {
-        "@types/node": "^18.11.18",
-        "@types/react": "^18.0.27",
-        "prettier": "2.8.3",
-        "sass": "^1.58.0",
-        "typescript": "^4.9.5"
+        "@types/node": "^20.9.3",
+        "@types/react": "^18.2.38",
+        "prettier": "^3.1.0",
+        "sass": "^1.69.5",
+        "typescript": "^5.3.2"
     }
 }

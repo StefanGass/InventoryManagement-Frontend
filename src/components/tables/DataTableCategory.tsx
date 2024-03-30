@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { ICategory } from 'components/interfaces';
+import { Box } from '@mui/material';
 
 interface IDataTableCategoryProps {
     categoryList: ICategory[];
@@ -11,11 +11,21 @@ const columns: GridColDef[] = [
     { field: 'prefix', headerName: 'Präfix', width: 200 }
 ];
 
-const DataTableCategory: FC<IDataTableCategoryProps> = (props) => {
+export default function DataTableCategory(props: IDataTableCategoryProps) {
     const { categoryList } = props;
 
     return (
-        <div style={categoryList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+        <Box
+            style={
+                categoryList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 505 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 505
+                      }
+            }
+        >
             <DataGrid
                 rows={categoryList.map((category: ICategory) => ({
                     id: category.id,
@@ -25,13 +35,17 @@ const DataTableCategory: FC<IDataTableCategoryProps> = (props) => {
                 autoHeight={categoryList.length < 15}
                 density="compact"
                 columns={columns}
-                pageSize={50}
-                rowsPerPageOptions={[50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 50
+                        }
+                    }
+                }}
+                pageSizeOptions={[50]}
                 hideFooterSelectedRowCount
-                components={{ Toolbar: GridToolbar }}
+                slots={{ toolbar: GridToolbar }}
             />
-        </div>
+        </Box>
     );
-};
-
-export default DataTableCategory;
+}

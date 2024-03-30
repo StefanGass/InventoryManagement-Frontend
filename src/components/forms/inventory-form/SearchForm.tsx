@@ -1,64 +1,77 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Grid, Paper, Tooltip } from '@mui/material';
-import { Box } from '@mui/system';
+import { Box, Button, Grid, Paper, Tooltip } from '@mui/material';
 import CustomButton from 'components/form-fields/CustomButton';
 import { Close, PhotoCamera, QrCode, Search } from '@mui/icons-material';
 import jsQR from 'jsqr';
 import TextField from '@mui/material/TextField';
 import { useRouter } from 'next/router';
+import { useDebounce } from 'hooks/useDebounce';
+import { ISearchForm } from 'components/interfaces';
 
-const QrScanningForm = () => {
+export default function QrScanningForm(props: ISearchForm) {
+    const { setSearch, items } = props;
+
     const router = useRouter();
     const [value, setValue] = useState('');
-    const [error, setError] = useState(false);
+    const [isServerError, setIsServerError] = useState(false);
 
     // QR scan
-    const [scan, setScan] = useState(false);
-    const [scanError, setScanError] = useState(false);
-    const [placeholderIcon, setPlaceholderIcon] = useState(true);
+    const [isScanActive, setIsScanActive] = useState(false);
+    const [isScanError, setIsScanError] = useState(false);
+    const [isShowPlaceholderIcon, setIsShowPlaceholderIcon] = useState(true);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const qrVideo = useRef<HTMLVideoElement>(null);
+    const debouncedSearchTerm = useDebounce(value, 500);
 
     useEffect(() => {
-        setError(false);
+        setIsServerError(false);
     }, [value]);
 
-    const handleError = (error: any) => {
+    useEffect(() => {
+        if (value.length > 1) setSearch(value);
+        else if (value.length == 0) setSearch('');
+    }, [debouncedSearchTerm]);
+
+    function handleError(error: any) {
         console.log(error);
-        setError(true);
-    };
+        setIsServerError(true);
+    }
 
-    const startSearchClick = (codeData: string | null) => {
-        fetch(
-            codeData
-                ? `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${codeData}`
-                : `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${value}`,
-            {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }
-        )
-            .then((response) => {
-                if (response.ok) {
-                    response
-                        .json()
-                        .then((result) => {
-                            router.push('/details/' + result);
-                        })
-                        .catch((error) => {
-                            handleError(error);
-                        });
-                } else {
-                    handleError(response);
+    function startSearchClick(codeData: string | null) {
+        if (items.length == 1) {
+            router.push('/details/' + items[0].id);
+        } else if (codeData) {
+            fetch(
+                codeData
+                    ? `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${codeData}`
+                    : `${process.env.HOSTNAME}/api/inventorymanagement/inventory/search/${value}`,
+                {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
                 }
-            })
-            .catch((error) => {
-                handleError(error);
-            });
-    };
+            )
+                .then((response) => {
+                    if (response.ok) {
+                        response
+                            .json()
+                            .then((result) => {
+                                router.push('/details/' + result);
+                            })
+                            .catch((error) => {
+                                handleError(error);
+                            });
+                    } else {
+                        handleError(response);
+                    }
+                })
+                .catch((error) => {
+                    handleError(error);
+                });
+        }
+    }
 
-    const checkCameraStream = () => {
+    function checkCameraStream() {
         try {
             if (qrVideo?.current?.readyState === qrVideo?.current?.HAVE_ENOUGH_DATA) {
                 if (canvasRef != null && canvasRef.current != null) {
@@ -76,7 +89,7 @@ const QrScanningForm = () => {
                                 setValue(code.data);
                                 qrVideo.current.pause();
                                 qrVideo.current.currentTime = 0;
-                                setScan(false);
+                                setIsScanActive(false);
                                 startSearchClick(code.data);
                             }
                         }
@@ -86,13 +99,14 @@ const QrScanningForm = () => {
             requestAnimationFrame(checkCameraStream);
         } catch (error) {
             console.log(error);
-            setScan(false);
-            setPlaceholderIcon(true);
-            setScanError(true);
+            setIsScanActive(false);
+            setIsShowPlaceholderIcon(true);
+            setIsScanError(true);
         }
-    };
-    const startCamera = (props: boolean) => {
-        setScanError(false);
+    }
+
+    function startCamera(props: boolean) {
+        setIsScanError(false);
         setValue('');
         if (navigator?.mediaDevices) {
             if (qrVideo?.current) {
@@ -100,7 +114,7 @@ const QrScanningForm = () => {
                     .getUserMedia({ video: { facingMode: 'environment' } })
                     .then(function (stream) {
                         if (qrVideo.current !== null) {
-                            setPlaceholderIcon(false);
+                            setIsShowPlaceholderIcon(false);
                             qrVideo.current.srcObject = stream;
                             qrVideo.current.setAttribute('playsinline', 'playsinline'); // required to tell iOS safari we don't want fullscreen
                             if (props) {
@@ -117,78 +131,80 @@ const QrScanningForm = () => {
                             }
                         } else {
                             console.log('Video stream is null.');
-                            setScan(false);
-                            setPlaceholderIcon(true);
-                            setScanError(true);
+                            setIsScanActive(false);
+                            setIsShowPlaceholderIcon(true);
+                            setIsScanError(true);
                         }
                     })
                     .catch((error) => {
                         console.log(error);
-                        setScan(false);
-                        setPlaceholderIcon(true);
-                        setScanError(true);
+                        setIsScanActive(false);
+                        setIsShowPlaceholderIcon(true);
+                        setIsScanError(true);
                     });
             }
         } else {
             console.log('No camera device found.');
-            setScan(false);
-            setPlaceholderIcon(true);
-            setScanError(true);
+            setIsScanActive(false);
+            setIsShowPlaceholderIcon(true);
+            setIsScanError(true);
         }
-    };
+    }
 
-    const startScanClick = () => {
+    function startScanClick() {
         startCamera(true);
-        setScan(true);
-    };
+        setIsScanActive(true);
+    }
 
-    const closeScanClick = () => {
+    function closeScanClick() {
         startCamera(false);
-        setScan(false);
-        setPlaceholderIcon(true);
-    };
+        setIsScanActive(false);
+        setIsShowPlaceholderIcon(true);
+    }
 
     return (
         <>
-            <Grid hidden={!scan}>
-                <Grid
-                    container
-                    justifyContent="center"
-                >
-                    <Paper
-                        elevation={6}
-                        style={{
-                            padding: '15px',
-                            height: '270px',
-                            width: '270px',
-                            justifyContent: 'center'
-                        }}
+            {!isScanError && (
+                <Grid hidden={!isScanActive}>
+                    <Grid
+                        container
+                        justifyContent="center"
                     >
-                        {placeholderIcon && (
-                            <Box sx={{ m: 13.5 }}>
-                                <PhotoCamera style={{ color: 'LightGray', transform: 'scale(6)' }} />
-                            </Box>
-                        )}
-                        <video
-                            ref={qrVideo}
-                            width="240px"
-                            height="240px"
-                            style={{ objectFit: 'cover' }}
+                        <Paper
+                            elevation={6}
+                            style={{
+                                padding: '15px',
+                                height: '270px',
+                                width: '270px',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            {isShowPlaceholderIcon && (
+                                <Box sx={{ m: 13.5 }}>
+                                    <PhotoCamera style={{ color: 'LightGray', transform: 'scale(6)' }} />
+                                </Box>
+                            )}
+                            <video
+                                ref={qrVideo}
+                                width="240px"
+                                height="240px"
+                                style={{ objectFit: 'cover' }}
+                            />
+                        </Paper>
+                    </Grid>
+                    <Grid
+                        container
+                        justifyContent="center"
+                    >
+                        <CustomButton
+                            label="Scan abbrechen"
+                            symbol={<Close />}
+                            onClick={closeScanClick}
                         />
-                    </Paper>
+                    </Grid>
                 </Grid>
-                <Grid
-                    container
-                    justifyContent="center"
-                >
-                    <CustomButton
-                        label="Scan abbrechen"
-                        symbol={<Close />}
-                        onClick={closeScanClick}
-                    />
-                </Grid>
-            </Grid>
-            {!scan && (
+            )}
+            {!isScanActive && (
                 <Grid
                     container
                     direction="row"
@@ -197,21 +213,24 @@ const QrScanningForm = () => {
                     <Grid sx={{ flexGrow: 1, marginRight: '1em' }}>
                         <TextField
                             label={
-                                <div
+                                <Box
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         flexWrap: 'wrap'
                                     }}
                                 >
-                                    <Search fontSize="small" />
-                                    <span>&nbsp;Schnellsuche</span>
-                                </div>
+                                    <Search
+                                        fontSize="small"
+                                        sx={{ marginRight: '7px' }}
+                                    />
+                                    <span>Schnellsuche</span>
+                                </Box>
                             }
                             fullWidth={true}
                             size="small"
-                            placeholder="Inventarnummer eingeben"
-                            helperText={error && 'Inventarnummer wurde nicht gefunden.'}
+                            placeholder="Suchbegriff eingeben"
+                            helperText={isServerError && 'Inventarnummer wurde nicht gefunden.'}
                             InputLabelProps={{ shrink: true }}
                             variant="outlined"
                             value={value}
@@ -221,22 +240,26 @@ const QrScanningForm = () => {
                                 }
                             }}
                             onChange={(e) => setValue(e.target.value)}
-                            error={error}
+                            error={isServerError}
                         />
                     </Grid>
-                    <Tooltip title={scanError ? 'Kamera nicht verfügbar.' : null}>
-                        <div /* necessary to show tooltip */>
+                    <Tooltip
+                        title={isScanError ? 'Kamera nicht verfügbar.' : undefined}
+                        enterDelay={500}
+                        followCursor={true}
+                    >
+                        <Box style={{ cursor: `${isScanError ? 'not-allowed' : 'pointer'}` }} /* necessary to show tooltip */>
                             <Button
                                 variant="contained"
                                 onClick={startScanClick}
                                 style={{
                                     height: '2.8em'
                                 }}
-                                disabled={scanError}
+                                disabled={isScanError}
                             >
                                 <QrCode />
                             </Button>
-                        </div>
+                        </Box>
                     </Tooltip>
                 </Grid>
             )}
@@ -248,6 +271,4 @@ const QrScanningForm = () => {
             />
         </>
     );
-};
-
-export default QrScanningForm;
+}

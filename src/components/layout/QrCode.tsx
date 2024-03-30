@@ -1,14 +1,14 @@
-import { FC, useContext } from 'react';
+import { useContext } from 'react';
 import QRCodeSVG from 'qrcode.react';
-import { darkBackground, mainBlack, mainWhite } from 'styles/theme';
-import { UserContext } from 'pages/_app';
+import defaultTheme, { darkTheme, mainBlack, mainWhite } from 'styles/theme';
+import { UserContext } from '../../../pages/_app';
 
 interface IQrCodeProps {
     value: string;
     size: number;
 }
 
-const QrCode: FC<IQrCodeProps> = (props) => {
+export default function QrCode(props: IQrCodeProps) {
     const { value, size } = props;
     const { themeMode } = useContext(UserContext);
 
@@ -16,10 +16,8 @@ const QrCode: FC<IQrCodeProps> = (props) => {
         <QRCodeSVG
             size={size}
             value={value}
-            bgColor={themeMode === 'dark' ? darkBackground : mainWhite}
+            bgColor={themeMode === 'dark' ? darkTheme.palette.background.default : defaultTheme.palette.background.default}
             fgColor={themeMode === 'dark' ? mainWhite : mainBlack}
         />
     );
-};
-
-export default QrCode;
+}

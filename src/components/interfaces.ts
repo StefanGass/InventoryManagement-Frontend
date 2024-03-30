@@ -1,15 +1,61 @@
+import React from 'react';
+import { GridRowId } from '@mui/x-data-grid';
+
 export interface IUser {
     id: number;
     firstName: string;
     lastName: string;
     admin: boolean;
     superAdmin: boolean;
+    authInventoryManagement: boolean;
+}
+
+export interface IUserContextWithoutSetters {
+    authHeaders: Headers;
+    isAuthenticated: boolean;
+    userId: number;
+    firstName: string;
+    lastName: string;
+    isDroppingReviewer: boolean;
+    isNewTasksAvailable: boolean;
+    isAdmin: boolean;
+    isSuperAdmin: boolean;
+    isAdminModeActivated: boolean;
+    departmentId: number;
+    departmentName: string;
+    availableRoutesList: IRoute[];
+    themeMode: 'light' | 'dark';
+}
+
+export interface IUserContext extends IUserContextWithoutSetters {
+    setAuthHeaders: (val: Headers) => void;
+    setIsAuthenticated: (val: boolean) => void;
+    setUserId: (val: number) => void;
+    setFirstName: (val: string) => void;
+    setLastName: (val: string) => void;
+    setIsDroppingReviewer: (val: boolean) => void;
+    setIsNewTasksAvailable: (val: boolean) => void;
+    setIsAdmin: (val: boolean) => void;
+    setIsSuperAdmin: (val: boolean) => void;
+    setIsAdminModeActivated: (val: boolean) => void;
+    setDepartmentId: (val: number) => void;
+    setDepartmentName: (val: string) => void;
+    setAvailableRoutesList: (val: IRoute[]) => void;
+    setThemeMode: (val: 'light' | 'dark') => void;
+}
+
+export interface IRoute {
+    name: string;
+    symbol: React.JSX.Element;
+    isUseSymbolInHeader: boolean;
+    link: string;
 }
 
 export interface IDepartmentMember {
     id: number;
     userId: number;
     department: IDepartment;
+    droppingReviewer: boolean;
 }
 
 export interface IDepartmentMemberConverted {
@@ -35,8 +81,10 @@ export interface IInventoryItem {
     issueDate?: string | null;
     issuedTo?: string;
     droppingDate?: string | null;
+    droppingQueue?: string;
     status: string;
     department?: IDepartment;
+    creationDate?: string | null;
     lastChangedDate?: string | null;
     active: boolean;
     userName?: string;
@@ -47,16 +95,39 @@ export interface IDetailInventoryItem extends IInventoryItem {
     comments?: string;
     pictures?: IPicture[];
     change?: IChange[];
+    droppingQueuePieces?: number;
+    droppingQueueRequester?: number;
+    droppingQueueReason?: string;
+    droppingQueueDate?: string;
 }
 
-export interface IDataTableInventory {
+export interface IDataTableInventoryBase {
+    isShowSwitchAndLegend?: boolean;
+}
+
+export interface IDataTableInventory extends IDataTableInventoryBase {
+    search?: string;
+    setSearch: (search: string) => void;
+    isShowSearchBar?: boolean;
+    isSearching?: boolean;
     items: IInventoryItem[];
-    setItems: (items: IInventoryItem[]) => void;
-    activeAndNotDroppedItems: IInventoryItem[];
-    activeAndNotActiveAndNotDroppedItems: IInventoryItem[];
-    activeAndDroppedAndNotDroppedItems: IInventoryItem[];
-    allItems: IInventoryItem[];
-    showSwitchSearchBarAndLegend?: boolean;
+    isIncludeDroppingInformation?: boolean;
+    selectionModel?: GridRowId[];
+    setSelectionModel?: (val: GridRowId[]) => void;
+}
+
+export interface IDataTableInventorySearchable extends IDataTableInventoryBase {
+    getSearchUrl: (search: string) => string;
+}
+
+export interface ISearchForm {
+    setSearch: (search: string) => void;
+    items: IInventoryItem[];
+}
+
+export interface IPageHeader {
+    title: string;
+    id: string;
 }
 
 export interface IType {
@@ -85,6 +156,7 @@ export interface ISupplier {
 export interface IDepartment {
     id: number;
     departmentName: string;
+    departmentMembers?: IDepartmentMember[];
 }
 
 export interface IObjectToSend {
@@ -96,6 +168,7 @@ export type GenericObject = { [key: string]: any };
 export interface IPicture {
     id?: number;
     pictureUrl: string | ArrayBuffer;
+    thumbnailUrl?: string | ArrayBuffer;
 }
 
 export interface IChange {
@@ -128,29 +201,6 @@ export interface IReturningOptions {
 export interface IFormValidation {
     error: boolean;
     name: string;
-}
-
-export interface IUserContext {
-    login: boolean;
-    setLogin: (val: boolean) => void;
-    userId: number;
-    setUserId: (val: number) => void;
-    firstName: string;
-    setFirstName: (val: string) => void;
-    lastName: string;
-    setLastName: (val: string) => void;
-    admin: boolean;
-    setAdmin: (val: boolean) => void;
-    superAdmin: boolean;
-    setSuperAdmin: (val: boolean) => void;
-    adminMode: boolean;
-    setAdminMode: (val: boolean) => void;
-    departmentId: number;
-    setDepartmentId: (val: number) => void;
-    departmentName: string;
-    setDepartmentName: (val: string) => void;
-    themeMode: 'light' | 'dark';
-    setThemeMode: (val: 'light' | 'dark') => void;
 }
 
 export interface IChartItem {

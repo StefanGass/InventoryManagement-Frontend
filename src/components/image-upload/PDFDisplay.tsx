@@ -1,4 +1,3 @@
-import { FC } from 'react';
 import { IPicture } from 'components/interfaces';
 import { Box, Typography } from '@mui/material';
 
@@ -6,9 +5,10 @@ interface IPDFDisplayProps {
     pdfs: IPicture[];
 }
 
-const PDFDisplay: FC<IPDFDisplayProps> = ({ pdfs }) => {
+export default function PDFDisplay(props: IPDFDisplayProps) {
+    const { pdfs } = props;
     return (
-        <Box sx={{ paddingTop: '1em' }}>
+        <Box paddingTop="1em">
             <Typography
                 variant="h2"
                 align="center"
@@ -16,7 +16,7 @@ const PDFDisplay: FC<IPDFDisplayProps> = ({ pdfs }) => {
             >
                 Dokumente
             </Typography>
-            <div style={{ display: 'flex', flexFlow: 'column nowrap', alignItems: 'flex-end' }}>
+            <Box style={{ display: 'flex', flexFlow: 'column nowrap', alignItems: 'flex-end' }}>
                 {pdfs?.map((pdf, index) => {
                     const byteCharacters = Buffer.from((pdf.pictureUrl as string)?.split(',')?.[1] ?? '', 'base64');
                     const byteArray = Uint8Array.from(byteCharacters);
@@ -32,9 +32,7 @@ const PDFDisplay: FC<IPDFDisplayProps> = ({ pdfs }) => {
                         </a>
                     );
                 })}
-            </div>
+            </Box>
         </Box>
     );
-};
-
-export default PDFDisplay;
+}

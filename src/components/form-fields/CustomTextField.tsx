@@ -1,24 +1,24 @@
-import { FC, useContext } from 'react';
+import { useContext } from 'react';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { GenericObject } from 'components/interfaces';
 import { darkGrey, lightGrey } from 'styles/theme';
-import { UserContext } from 'pages/_app';
+import { UserContext } from '../../../pages/_app';
 
-interface ITextField {
+interface ICustomTextFieldProps {
     label: string;
     setValue: (string: string) => void;
-    error?: boolean;
-    multiline?: boolean;
-    required?: boolean;
+    isError?: boolean;
+    isMultiline?: boolean;
+    isRequired?: boolean;
     value?: string | GenericObject | number | null;
     helperText?: string;
-    disabled?: boolean;
+    isDisabled?: boolean;
     type?: string;
 }
 
-const CustomTextField: FC<ITextField> = (props) => {
-    const { label, setValue, error = false, multiline = false, required = false, value, helperText = null, disabled, type = 'string' } = props;
+export default function CustomTextField(props: ICustomTextFieldProps) {
+    const { label, setValue, isError = false, isMultiline = false, isRequired = false, value, helperText = null, isDisabled, type = 'string' } = props;
     const { themeMode } = useContext(UserContext);
 
     return (
@@ -36,13 +36,13 @@ const CustomTextField: FC<ITextField> = (props) => {
                 variant="outlined"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                error={error}
-                minRows={multiline ? 4 : 1}
-                multiline={multiline}
-                required={required}
+                error={isError}
+                minRows={isMultiline ? 4 : 1}
+                multiline={isMultiline}
+                required={isRequired}
                 helperText={helperText}
-                disabled={disabled}
-                onKeyDown={(e) => !multiline && e.key === 'Enter' && e.preventDefault()}
+                disabled={isDisabled}
+                onKeyDown={(e) => !isMultiline && e.key === 'Enter' && e.preventDefault()}
                 type={type}
                 sx={{
                     '& .MuiInputBase-input.Mui-disabled': {
@@ -61,6 +61,4 @@ const CustomTextField: FC<ITextField> = (props) => {
             />
         </Box>
     );
-};
-
-export default CustomTextField;
+}

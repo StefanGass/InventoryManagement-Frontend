@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import {
@@ -7,88 +7,83 @@ import {
     Button,
     Grid,
     IconButton,
+    keyframes,
     List,
     ListItemButton,
     ListItemText,
-    styled,
     SwipeableDrawer,
     Toolbar,
+    Tooltip,
     Typography,
     useMediaQuery
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Link from 'components/layout/Link';
-import { routes } from 'utils/routes';
-import lightTheme, { darkGrey, errorRed, lightGrey, mainWhite } from 'styles/theme';
+import defaultTheme, { darkGrey, darkTheme, errorRed, mainYellow, lightGrey, mainWhite } from 'styles/theme';
 import logo from 'public/pictures/logo.png';
-import { UserContext } from 'pages/_app';
+import { UserContext } from '../../../pages/_app';
+import inventoryManagementService from 'service/inventoryManagementService';
+import { IInventoryItem } from 'components/interfaces';
+import TestsystemHint from 'components/layout/TestsystemHint';
 
-const StyledTypographyDesktop = styled(Typography)({
-    fontSize: '1.25em',
-    color: lightTheme.palette.secondary.main,
-    '&:hover': {
-        color: lightTheme.palette.info.main
-    },
-    marginTop: '2px'
-});
+interface IHeaderProps {
+    resetUserContext: () => void;
+}
 
-const StyledLogoutButtonDesktop = styled(Button)({
-    color: lightTheme.palette.secondary.main,
-    '&:hover': {
-        background: errorRed,
-        color: lightTheme.palette.info.main
-    },
-    border: `1px solid ${lightTheme.palette.common.white}`,
-    fontSize: '20px',
-    width: '7em'
-});
-
-const StyledIconButtonDrawer = styled(IconButton)({
-    marginLeft: 'auto',
-    padding: 0,
-    '&:hover': {
-        backgroundColor: 'transparent'
+const blink = keyframes`
+    from {
+        transform: scale(1);
     }
-});
+    50% {
+        transform: scale(1.5);
+    }
+    to {
+        transform: scale(1);
+    }
+`;
 
-const Header = () => {
-    const { login, setLogin, setUserId, setFirstName, setLastName, setAdmin, setSuperAdmin, setAdminMode, setDepartmentId, setDepartmentName, themeMode } =
-        useContext(UserContext);
+export default function Header(props: IHeaderProps) {
+    const { resetUserContext } = props;
+    const {
+        isAuthenticated,
+        departmentId,
+        isAdmin,
+        isSuperAdmin,
+        isAdminModeActivated,
+        availableRoutesList,
+        themeMode,
+        isDroppingReviewer,
+        isNewTasksAvailable,
+        setIsNewTasksAvailable
+    } = useContext(UserContext);
 
     const router = useRouter();
-    const matches = useMediaQuery(lightTheme.breakpoints.down('md'));
+    const matches = useMediaQuery(defaultTheme.breakpoints.down('sm'));
 
-    const logoutClick = () => {
-        setOpenDrawer(false);
-        if (setLogin) {
-            setLogin(false);
+    function logoutClick() {
+        resetUserContext();
+        setIsOpenDrawer(false);
+    }
+
+    // blink when there's something in the queue
+    useEffect(() => {
+        let request: Promise<IInventoryItem[]>;
+        if ((isSuperAdmin || isAdmin) && isAdminModeActivated) {
+            request = inventoryManagementService.getAllDroppingQueueInventoryItems();
+        } else {
+            if (!isDroppingReviewer) {
+                setIsNewTasksAvailable(false);
+                return;
+            }
+            request = inventoryManagementService.getDroppingQueueInventoryItemsByDepartmentId(departmentId);
         }
-        if (setUserId) {
-            setUserId(-1);
-        }
-        if (setFirstName) {
-            setFirstName('');
-        }
-        if (setLastName) {
-            setLastName('');
-        }
-        if (setAdmin) {
-            setAdmin(false);
-        }
-        if (setSuperAdmin) {
-            setSuperAdmin(false);
-        }
-        if (setAdminMode) {
-            setAdminMode(false);
-        }
-        if (setDepartmentId) {
-            setDepartmentId(-1);
-        }
-        if (setDepartmentName) {
-            setDepartmentName('');
-        }
-    };
+        request
+            .then((item) => {
+                setIsNewTasksAvailable(!!item.length);
+            })
+            .catch((e) => console.log(e));
+    }, [isDroppingReviewer, router.pathname, isAdminModeActivated]);
 
     // desktop mode
     const tabs = (
@@ -96,48 +91,94 @@ const Header = () => {
             <Grid
                 container
                 justifyContent="flex-end"
-                spacing={4}
+                alignItems="center"
+                spacing={3}
             >
-                {routes.map(({ name, link }) => (
+                {availableRoutesList.map(({ name, symbol, isUseSymbolInHeader, link }, index) => (
                     <Grid
                         item
                         key={link}
                     >
-                        <Link
-                            href={link}
-                            underline="none"
+                        <Tooltip
+                            title={isUseSymbolInHeader ? name : null}
+                            enterDelay={500}
+                            followCursor={true}
                         >
-                            <StyledTypographyDesktop
-                                style={{
-                                    fontWeight: router.pathname === link ? 'bold' : 'normal',
-                                    borderBottom: router.pathname === link ? '0.5px solid' : '0px'
-                                }}
+                            <Link
+                                href={link}
+                                underline="none"
+                                id={'link' + name}
                             >
-                                {name}
-                            </StyledTypographyDesktop>
-                        </Link>
+                                <Typography
+                                    fontSize="1.25em"
+                                    fontWeight={router.pathname === link ? 'bold' : 'normal'}
+                                    component="div"
+                                    color={
+                                        router.pathname === link
+                                            ? themeMode === 'dark'
+                                                ? 'primary'
+                                                : mainYellow
+                                            : themeMode === 'dark'
+                                              ? darkTheme.palette.common.white
+                                              : defaultTheme.palette.common.white
+                                    }
+                                    sx={{
+                                        height: '1.5em',
+                                        marginTop: '6px',
+                                        borderBottom: router.pathname === link ? '1px solid' : '0px',
+                                        '&:hover': {
+                                            color: themeMode === 'dark' ? darkTheme.palette.primary.main : defaultTheme.palette.secondary.main
+                                        }
+                                    }}
+                                >
+                                    {index === 4 && isNewTasksAvailable ? (
+                                        <Box sx={{ animation: `${blink} 1s linear infinite` }}>{symbol}</Box>
+                                    ) : isUseSymbolInHeader ? (
+                                        symbol
+                                    ) : (
+                                        name
+                                    )}
+                                </Typography>
+                            </Link>
+                        </Tooltip>
                     </Grid>
                 ))}
-                <Grid item>
-                    <StyledLogoutButtonDesktop onClick={logoutClick}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                flexWrap: 'wrap'
+                <Tooltip
+                    title="ABMELDEN"
+                    enterDelay={500}
+                    followCursor={true}
+                >
+                    <Grid item>
+                        <Button
+                            onClick={logoutClick}
+                            sx={{
+                                color: themeMode === 'dark' ? darkTheme.palette.common.white : defaultTheme.palette.common.white,
+                                '&:hover': {
+                                    background: errorRed,
+                                    color: mainYellow
+                                },
+                                border: `1px solid ${themeMode === 'dark' ? darkTheme.palette.common.white : defaultTheme.palette.common.white}`,
+                                fontSize: '20px'
                             }}
                         >
-                            <LogoutIcon fontSize={'small'} />
-                            <Typography>&nbsp;Abmelden</Typography>
-                        </div>
-                    </StyledLogoutButtonDesktop>
-                </Grid>
+                            <Box
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap'
+                                }}
+                            >
+                                <LogoutIcon fontSize={'small'} />
+                            </Box>
+                        </Button>
+                    </Grid>
+                </Tooltip>
             </Grid>
         </>
     );
 
     // mobile mode
-    const [openDrawer, setOpenDrawer] = useState(false);
+    const [isOpenDrawer, setIsOpenDrawer] = useState(false);
     const iOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
     const drawer = (
@@ -145,23 +186,23 @@ const Header = () => {
             <SwipeableDrawer
                 disableBackdropTransition={!iOS}
                 disableDiscovery={iOS}
-                open={openDrawer}
-                onClose={() => setOpenDrawer(false)}
-                onOpen={() => setOpenDrawer(true)}
+                open={isOpenDrawer}
+                onClose={() => setIsOpenDrawer(false)}
+                onOpen={() => setIsOpenDrawer(true)}
                 anchor="right"
             >
-                <div style={{ ...lightTheme.mixins.toolbar, marginBottom: '2em' }} />
                 <Box
-                    sx={{ width: 200 }}
+                    marginTop="4em"
                     role="presentation"
+                    sx={{ width: 200 }}
                 >
                     <List disablePadding>
-                        {routes.map(({ name, link }) => (
+                        {availableRoutesList.map(({ name, symbol, link }, index) => (
                             <ListItemButton
                                 key={link}
                                 divider
                                 onClick={() => {
-                                    setOpenDrawer(false);
+                                    setIsOpenDrawer(false);
                                 }}
                                 sx={{
                                     '&:hover': {
@@ -174,22 +215,26 @@ const Header = () => {
                                         href={link}
                                         underline="none"
                                     >
-                                        <Typography
-                                            variant="h3"
-                                            sx={{
-                                                color:
-                                                    router.pathname === link
-                                                        ? themeMode === 'dark'
-                                                            ? mainWhite
-                                                            : 'primary'
-                                                        : themeMode === 'dark'
-                                                        ? lightGrey
-                                                        : darkGrey,
-                                                fontWeight: router.pathname === link ? 'bold' : 'normal'
-                                            }}
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            flexWrap="wrap"
+                                            color={router.pathname === link ? 'primary' : themeMode === 'dark' ? darkTheme.palette.common.white : darkGrey}
                                         >
-                                            {name}
-                                        </Typography>
+                                            {index === 4 && isNewTasksAvailable ? (
+                                                <Box sx={{ animation: `${blink} 1s linear infinite` }}>{symbol}</Box>
+                                            ) : (
+                                                symbol
+                                            )}
+                                            <Typography
+                                                fontSize="1.25rem"
+                                                fontWeight={router.pathname === link ? 'bold' : 'normal'}
+                                                lineHeight={1.167}
+                                                marginLeft="0.4em"
+                                            >
+                                                {name}
+                                            </Typography>
+                                        </Box>
                                     </Link>
                                 </ListItemText>
                             </ListItemButton>
@@ -203,38 +248,47 @@ const Header = () => {
                             }}
                         >
                             <ListItemText>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        flexWrap: 'wrap'
-                                    }}
+                                <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    flexWrap="wrap"
                                 >
-                                    <LogoutIcon style={{ color: errorRed }} />
+                                    <LogoutIcon sx={{ color: errorRed }} />
                                     <Typography
-                                        variant="h3"
-                                        style={{ color: themeMode === 'dark' ? lightGrey : darkGrey }}
+                                        fontSize="1.25rem"
+                                        fontWeight="normal"
+                                        lineHeight={1.167}
+                                        color={themeMode === 'dark' ? darkTheme.palette.common.white : darkGrey}
+                                        marginLeft="0.4em"
                                     >
-                                        &nbsp;Abmelden
+                                        ABMELDEN
                                     </Typography>
-                                </div>
+                                </Box>
                             </ListItemText>
                         </ListItemButton>
                     </List>
                 </Box>
             </SwipeableDrawer>
-            <StyledIconButtonDrawer
-                onClick={() => setOpenDrawer(!openDrawer)}
+            <IconButton
+                onClick={() => setIsOpenDrawer(!isOpenDrawer)}
                 disableRipple
+                sx={{
+                    marginLeft: 'auto',
+                    padding: 0,
+                    '&:hover': {
+                        backgroundColor: 'transparent'
+                    }
+                }}
             >
                 <MenuIcon style={{ height: '35px', width: '35px', color: mainWhite }} />
-            </StyledIconButtonDrawer>
+            </IconButton>
         </>
     );
 
     return (
         <Box sx={{ flexGrow: 1 }}>
-            <AppBar enableColorOnDark>
+            {process.env.HOSTNAME && !process.env.HOSTNAME.includes('kultur-burgenland') && <TestsystemHint />}
+            <AppBar>
                 <Toolbar
                     disableGutters
                     style={{
@@ -250,15 +304,13 @@ const Header = () => {
                             src={logo}
                             height={50}
                             width={170}
-                            style={{marginTop: '9px'}}
+                            style={{ marginTop: '8px' }}
                             priority
                         />
                     </Link>
-                    {login && (matches ? drawer : tabs)}
+                    {isAuthenticated && (matches ? drawer : tabs)}
                 </Toolbar>
             </AppBar>
         </Box>
     );
-};
-
-export default Header;
+}

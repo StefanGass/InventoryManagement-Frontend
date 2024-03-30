@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { ISupplier } from 'components/interfaces';
+import { Box } from '@mui/material';
 
 interface IDataTableSupplierProps {
     supplierList: ISupplier[];
@@ -11,11 +11,21 @@ const columns: GridColDef[] = [
     { field: 'link', headerName: 'Link', width: 500 }
 ];
 
-const DataTableSupplier: FC<IDataTableSupplierProps> = (props) => {
+export default function DataTableSupplier(props: IDataTableSupplierProps) {
     const { supplierList } = props;
 
     return (
-        <div style={supplierList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+        <Box
+            style={
+                supplierList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 505 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 505
+                      }
+            }
+        >
             <DataGrid
                 rows={supplierList.map((supplier: ISupplier) => ({
                     id: supplier.id,
@@ -25,13 +35,17 @@ const DataTableSupplier: FC<IDataTableSupplierProps> = (props) => {
                 autoHeight={supplierList.length < 15}
                 density="compact"
                 columns={columns}
-                pageSize={50}
-                rowsPerPageOptions={[50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 50
+                        }
+                    }
+                }}
+                pageSizeOptions={[50]}
                 hideFooterSelectedRowCount
-                components={{ Toolbar: GridToolbar }}
+                slots={{ toolbar: GridToolbar }}
             />
-        </div>
+        </Box>
     );
-};
-
-export default DataTableSupplier;
+}

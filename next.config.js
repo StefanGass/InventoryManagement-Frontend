@@ -5,7 +5,7 @@
 
 module.exports = {
     reactStrictMode: true,
-    //swcMinify: true, // does not work on linux/apache: https://nextjs.org/docs/messages/swc-minify-enabled
+    target: 'server',
     basePath: '/inventory',
     env: {
         HOSTNAME: process.env.HOSTNAME

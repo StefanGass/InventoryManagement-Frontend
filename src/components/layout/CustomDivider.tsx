@@ -1,6 +1,6 @@
 import { Box, Divider } from '@mui/material';
 
-const CustomDivider = () => {
+export default function CustomDivider() {
     return (
         <>
             <Box sx={{ my: 2 }} />
@@ -11,6 +11,4 @@ const CustomDivider = () => {
             <Box sx={{ my: 2 }} />
         </>
     );
-};
-
-export default CustomDivider;
+}

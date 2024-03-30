@@ -1,7 +1,7 @@
-import { FC, MouseEvent, useContext, useRef, useState } from 'react';
-import { Container, Grid, Typography } from '@mui/material';
+import { MouseEvent, useContext, useRef, useState } from 'react';
+import { Box, Container, Grid, Tooltip, Typography } from '@mui/material';
 import CustomButton from 'components/form-fields/CustomButton';
-import { UserContext } from 'pages/_app';
+import { UserContext } from '../../../../pages/_app';
 import { Cancel, CheckCircle, Handshake } from '@mui/icons-material';
 import SignaturePad from 'signature_pad';
 import { mainBlack } from 'styles/theme';
@@ -10,26 +10,27 @@ import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IHandoverFormProps {
     inventoryItem: IInventoryItem;
-    setLoading: (bool: boolean) => void;
-    setUpdated: (bool: boolean) => void;
+    setIsUpdated: (bool: boolean) => void;
+    setIsLoading: (bool: boolean) => void;
+    setServerError: (val: string) => void;
 }
 
-const HandoverForm: FC<IHandoverFormProps> = (props) => {
+export default function HandoverForm(props: IHandoverFormProps) {
     const { firstName, lastName } = useContext(UserContext);
-    const { inventoryItem, setLoading, setUpdated } = props;
-    const [showSignaturePad, setShowSignaturePad] = useState(false);
-    const [inputEmptyAlert, setInputEmptyAlert] = useState(false);
+    const { inventoryItem, setIsUpdated, setIsLoading, setServerError } = props;
+    const [isShowSignaturePad, setIsShowSignaturePad] = useState(false);
+    const [isInputEmptyAlert, setIsInputEmptyAlert] = useState(false);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [signatureData, setSignatureData] = useState('');
 
-    const onStartButtonClick = async (e: MouseEvent<HTMLButtonElement>) => {
+    async function onStartButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
-        setInputEmptyAlert(false);
-        if (showSignaturePad) {
-            setShowSignaturePad(false);
+        setIsInputEmptyAlert(false);
+        if (isShowSignaturePad) {
+            setIsShowSignaturePad(false);
         } else {
-            await setShowSignaturePad(true);
+            await setIsShowSignaturePad(true); // the await MUST not be removed
             if (canvasRef != null && canvasRef.current != null) {
                 const canvas = canvasRef.current;
                 const signaturePad = new SignaturePad(canvas, {
@@ -43,58 +44,71 @@ const HandoverForm: FC<IHandoverFormProps> = (props) => {
                     'afterUpdateStroke',
                     () => {
                         setSignatureData(signaturePad.toDataURL());
-                        setInputEmptyAlert(false);
+                        setIsInputEmptyAlert(false);
                     },
                     { once: false }
                 );
             }
         }
-    };
+    }
 
-    const patchRequest = () => {
+    function patchRequest() {
         fetch(`${process.env.HOSTNAME}/api/inventorymanagement/inventory/transferprotocol/${inventoryItem.id}/from/${firstName}/${lastName}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pictureUrl: signatureData })
-        }).then((response) => {
-            if (response.ok) {
-                setUpdated(true);
-            } else {
-                // TODO error alert??
-                console.log(response);
-            }
-        });
-    };
+        })
+            .then((response) => {
+                if (response.ok) {
+                    setIsUpdated(true);
+                } else {
+                    setServerError(response.statusText);
+                }
+            })
+            .catch((e) => setServerError(e.message));
+    }
 
-    const onSendButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    function onSendButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
-        setLoading(true);
+        setIsLoading(true);
         if (signatureData) {
             patchRequest();
             setSignatureData('');
-            setShowSignaturePad(false);
+            setIsShowSignaturePad(false);
         } else {
-            setInputEmptyAlert(true);
+            setIsInputEmptyAlert(true);
         }
-        setLoading(false);
-    };
+        setIsLoading(false);
+    }
 
     return (
-        <Container maxWidth={'md'}>
+        <Container maxWidth="md">
             <Grid
                 container
                 direction="row"
                 justifyContent="center"
                 alignItems="center"
             >
-                <CustomButton
-                    onClick={onStartButtonClick}
-                    label={showSignaturePad ? 'Übergabeprotokoll abbrechen' : 'Übergabeprotokoll erstellen'}
-                    symbol={showSignaturePad ? <Cancel /> : <Handshake />}
-                    disabled={!inventoryItem.issuedTo}
-                />
+                <Tooltip
+                    title={
+                        !inventoryItem.issuedTo
+                            ? 'Ein Rückgabeprotokoll kann nur erstellt werden, wenn der Gegenstand an jemanden ausgegeben wurde.'
+                            : undefined
+                    }
+                    followCursor={true}
+                    enterDelay={500}
+                >
+                    <Box /* necessary for showing tooltip */>
+                        <CustomButton
+                            onClick={onStartButtonClick}
+                            label={isShowSignaturePad ? 'Übergabeprotokoll abbrechen' : 'Übergabeprotokoll erstellen'}
+                            symbol={isShowSignaturePad ? <Cancel /> : <Handshake />}
+                            isDisabled={!inventoryItem.issuedTo}
+                        />
+                    </Box>
+                </Tooltip>
             </Grid>
-            {showSignaturePad && (
+            {isShowSignaturePad && (
                 <>
                     <Typography
                         align="center"
@@ -123,7 +137,7 @@ const HandoverForm: FC<IHandoverFormProps> = (props) => {
                                 style={{ marginTop: '2px', marginLeft: '2px', marginRight: '2px', marginBottom: '-5px' }}
                             />
                         </Grid>
-                        {inputEmptyAlert && (
+                        {isInputEmptyAlert && (
                             <CustomAlert
                                 state="error"
                                 message="Bitte Unterschrift ergänzen!"
@@ -146,6 +160,4 @@ const HandoverForm: FC<IHandoverFormProps> = (props) => {
             )}
         </Container>
     );
-};
-
-export default HandoverForm;
+}

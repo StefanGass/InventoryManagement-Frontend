@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridRowId, GridToolbar } from '@mui/x-data-grid';
 import { IDepartmentMemberConverted } from 'components/interfaces';
+import { Box } from '@mui/material';
 
 interface IDataTableUserProps {
     userList: IDepartmentMemberConverted[];
@@ -16,12 +16,22 @@ const columns: GridColDef[] = [
     }
 ];
 
-const DataTableCategory: FC<IDataTableUserProps> = (props) => {
+export default function DataTableUser(props: IDataTableUserProps) {
     const { userList, selectionModel, setSelectionModel } = props;
     let sortedUserList = userList.sort((a, b) => (a.name > b.name ? 1 : -1));
 
     return (
-        <div style={sortedUserList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+        <Box
+            style={
+                sortedUserList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 500 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 500
+                      }
+            }
+        >
             <DataGrid
                 rows={sortedUserList.map((user: IDepartmentMemberConverted) => ({
                     id: user.id,
@@ -31,12 +41,18 @@ const DataTableCategory: FC<IDataTableUserProps> = (props) => {
                 autoHeight={sortedUserList.length < 15}
                 density="compact"
                 columns={columns}
-                pageSize={50}
-                rowsPerPageOptions={[50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 50
+                        }
+                    }
+                }}
+                pageSizeOptions={[50]}
                 hideFooterSelectedRowCount
                 checkboxSelection
-                selectionModel={selectionModel}
-                onSelectionModelChange={(selection) => {
+                rowSelectionModel={selectionModel}
+                onRowSelectionModelChange={(selection) => {
                     if (selection.length > 1) {
                         const selectionSet = new Set(selectionModel);
                         const result = selection.filter((s) => !selectionSet.has(s));
@@ -45,10 +61,8 @@ const DataTableCategory: FC<IDataTableUserProps> = (props) => {
                         setSelectionModel(selection);
                     }
                 }}
-                components={{ Toolbar: GridToolbar }}
+                slots={{ toolbar: GridToolbar }}
             />
-        </div>
+        </Box>
     );
-};
-
-export default DataTableCategory;
+}

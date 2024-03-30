@@ -1,104 +1,84 @@
 import { IDepartment, IDepartmentMemberConverted } from 'components/interfaces';
 import { GridRowId } from '@mui/x-data-grid';
-import { Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import DataTableUser from 'components/tables/DataTableUser';
 import CustomButton from 'components/form-fields/CustomButton';
 import { Remove } from '@mui/icons-material';
-import { FC, MouseEvent, useEffect, useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 import CustomAlert from 'components/form-fields/CustomAlert';
 
 interface IDepartmentUserTable {
-    department: IDepartment;
+    department?: IDepartment;
     userList: IDepartmentMemberConverted[];
     fetchAndMergeChosenDepartmentWithUserList: () => void;
+    getRemoveCall: (department: IDepartment | null, member: GridRowId) => Promise<any>;
     setIsSend: (bool: boolean) => void;
+    isDepartmentRequiredForFetch: boolean;
     handleError: () => void;
 }
 
-const DepartmentUserTableForm: FC<IDepartmentUserTable> = (props) => {
-    const { userList, fetchAndMergeChosenDepartmentWithUserList, department, setIsSend, handleError } = props;
+export default function DepartmentUserTableForm(props: IDepartmentUserTable) {
+    const { userList, fetchAndMergeChosenDepartmentWithUserList, department, setIsSend, isDepartmentRequiredForFetch, handleError, getRemoveCall } = props;
     const [selectionModelDelete, setSelectionModelDelete] = useState<GridRowId[]>([]);
-    const [deleteMemberInputEmptyAlert, setDeleteMemberInputEmptyAlert] = useState(false);
-    const [deleteMemberSuccessfulAlert, setDeleteMemberSuccessfulAlert] = useState(false);
+    const [isDeleteMemberInputEmptyAlert, setIsDeleteMemberInputEmptyAlert] = useState(false);
+    const [isDeleteMemberSuccessfulAlert, setIsDeleteMemberSuccessfulAlert] = useState(false);
 
     useEffect(() => {
         setSelectionModelDelete([]);
-        setDeleteMemberInputEmptyAlert(false);
-        setDeleteMemberSuccessfulAlert(false);
+        setIsDeleteMemberInputEmptyAlert(false);
+        setIsDeleteMemberSuccessfulAlert(false);
     }, [department]);
 
     useEffect(() => {
-        setDeleteMemberInputEmptyAlert(false);
+        setIsDeleteMemberInputEmptyAlert(false);
     }, [selectionModelDelete]);
 
-    const onDeleteMemberButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    function onDeleteMemberButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
-        setDeleteMemberSuccessfulAlert(false);
-        setDeleteMemberInputEmptyAlert(false);
-        if (department && selectionModelDelete.length > 0) {
+        setIsDeleteMemberSuccessfulAlert(false);
+        setIsDeleteMemberInputEmptyAlert(false);
+        if ((!isDepartmentRequiredForFetch || department) && selectionModelDelete.length > 0) {
             selectionModelDelete.forEach((model) => {
-                fetch(`${process.env.HOSTNAME}/api/inventorymanagement/department/member/` + department.id, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(model)
-                })
+                getRemoveCall(department ? department : null, model)
                     .then((response) => {
-                        if (response.ok) {
-                            fetchAndMergeChosenDepartmentWithUserList();
-                            setDeleteMemberSuccessfulAlert(true);
-                            setIsSend(false);
-                        } else {
-                            handleError();
-                        }
+                        fetchAndMergeChosenDepartmentWithUserList();
+                        setIsDeleteMemberSuccessfulAlert(true);
+                        setIsSend(false);
                     })
                     .catch(() => {
                         handleError();
                     });
             });
         } else {
-            setDeleteMemberInputEmptyAlert(true);
+            setIsDeleteMemberInputEmptyAlert(true);
         }
-    };
+    }
 
     return (
         <>
-            <Grid
-                item
-                height="auto"
-                width="95%"
-                margin="auto"
-            >
-                <DataTableUser
-                    userList={userList}
-                    selectionModel={selectionModelDelete}
-                    setSelectionModel={setSelectionModelDelete}
-                />
-            </Grid>
-            {deleteMemberSuccessfulAlert && (
+            <DataTableUser
+                userList={userList}
+                selectionModel={selectionModelDelete}
+                setSelectionModel={setSelectionModelDelete}
+            />
+            {isDeleteMemberSuccessfulAlert && (
                 <CustomAlert
                     state="success"
-                    message="User:in(nen) erfolgreich entfernt!"
+                    message="Benutzer:in(nen) erfolgreich entfernt!"
                 />
             )}
-            {deleteMemberInputEmptyAlert && (
+            {isDeleteMemberInputEmptyAlert && (
                 <CustomAlert
                     state="error"
-                    message="Mindestens ein:e User:in auswählen!"
+                    message="Mindestens ein:e Benutzer:in auswählen!"
                 />
             )}
-            <Grid
-                container
-                justifyContent="center"
-                marginTop="0.5em"
-            >
-                <CustomButton
-                    onClick={onDeleteMemberButtonClick}
-                    label="Entfernen"
-                    symbol={<Remove />}
-                />
-            </Grid>
+            <Box my={1} />
+            <CustomButton
+                onClick={onDeleteMemberButtonClick}
+                label="Entfernen"
+                symbol={<Remove />}
+            />
         </>
     );
-};
-
-export default DepartmentUserTableForm;
+}

@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { IType } from 'components/interfaces';
+import { Box } from '@mui/material';
 
 interface IDataTableTypeProps {
     typeList: IType[];
@@ -8,14 +8,24 @@ interface IDataTableTypeProps {
 
 const columns: GridColDef[] = [
     { field: 'typeName', headerName: 'Typ', width: 250 },
-    { field: 'categoryName', headerName: 'Katgorie', width: 250 }
+    { field: 'categoryName', headerName: 'Kategorie', width: 250 }
 ];
 
-const DataTableType: FC<IDataTableTypeProps> = (props) => {
+export default function DataTableType(props: IDataTableTypeProps) {
     const { typeList } = props;
 
     return (
-        <div style={typeList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+        <Box
+            style={
+                typeList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 505 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 505
+                      }
+            }
+        >
             <DataGrid
                 rows={typeList.map((type: IType) => ({
                     id: type?.id,
@@ -25,13 +35,17 @@ const DataTableType: FC<IDataTableTypeProps> = (props) => {
                 autoHeight={typeList.length < 15}
                 density="compact"
                 columns={columns}
-                pageSize={50}
-                rowsPerPageOptions={[50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 50
+                        }
+                    }
+                }}
+                pageSizeOptions={[50]}
                 hideFooterSelectedRowCount
-                components={{ Toolbar: GridToolbar }}
+                slots={{ toolbar: GridToolbar }}
             />
-        </div>
+        </Box>
     );
-};
-
-export default DataTableType;
+}

@@ -1,6 +1,6 @@
-import { GenericObject, ICategory, ILocation, IObjectToSend, IPrinter, ISupplier, IType } from 'components/interfaces';
-import { FC, MouseEvent, useContext, useEffect, useState } from 'react';
-import { Box, Grid, Typography } from '@mui/material';
+import { GenericObject, ICategory, IDepartment, ILocation, IObjectToSend, IPrinter, ISupplier, IType } from 'components/interfaces';
+import { MouseEvent, useContext, useEffect, useState } from 'react';
+import { Box } from '@mui/material';
 import CustomTextField from 'components/form-fields/CustomTextField';
 import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
 import { Add } from '@mui/icons-material';
@@ -10,12 +10,14 @@ import DataTableLocation from 'components/tables/DataTableLocation';
 import DataTableSupplier from 'components/tables/DataTableSupplier';
 import CustomButton from 'components/form-fields/CustomButton';
 import DataTablePrinter from 'components/tables/DataTablePrinter';
-import { UserContext } from 'pages/_app';
+import { UserContext } from '../../../pages/_app';
 import CustomAlert from 'components/form-fields/CustomAlert';
+import DataTableDepartment from 'components/tables/DataTableDepartment';
+import CustomHeading2 from 'components/layout/CustomHeading2';
 
 interface IPropertyForm {
-    parameter: number | null;
-    tableList: ICategory[] | IType[] | ISupplier[] | ILocation[] | IPrinter[];
+    parameter: string;
+    tableList: ICategory[] | IType[] | ISupplier[] | ILocation[] | IDepartment[] | IPrinter[];
     categoryOptions: ICategory[];
     addSuccessfulAlert: boolean;
     duplicateErrorAlert: boolean;
@@ -24,244 +26,200 @@ interface IPropertyForm {
     setDuplicateErrorAlert: (bool: boolean) => void;
 }
 
-const ParameterForm: FC<IPropertyForm> = (props) => {
+export default function ParameterForm(props: IPropertyForm) {
     const { parameter, tableList, onClick, addSuccessfulAlert, duplicateErrorAlert, categoryOptions, setAddedSuccessfulAlert, setDuplicateErrorAlert } = props;
-    const { admin, superAdmin } = useContext(UserContext);
+    const { isAdmin, isSuperAdmin } = useContext(UserContext);
 
     const [valueOne, setValueOne] = useState<string>('');
     const [valueTwo, setValueTwo] = useState<string | GenericObject | null>('');
-    const [valueOneError, setValueOneError] = useState(false);
-    const [valueTwoError, setValueTwoError] = useState(false);
-    const [inputEmptyAlert, setInputEmptyAlert] = useState(false);
+    const [isValueOneError, setIsValueOneError] = useState(false);
+    const [isValueTwoError, setIsValueTwoError] = useState(false);
+    const [isInputEmptyAlert, setIsInputEmptyAlert] = useState(false);
 
     useEffect(() => {
         setValueOne('');
         setValueTwo('');
-        setValueOneError(false);
-        setValueTwoError(false);
+        setIsValueOneError(false);
+        setIsValueTwoError(false);
         setAddedSuccessfulAlert(false);
         setDuplicateErrorAlert(false);
-        setInputEmptyAlert(false);
+        setIsInputEmptyAlert(false);
     }, [parameter]);
 
     useEffect(() => {
-        valueOne && setValueOneError(false);
-        valueTwo && setValueTwoError(false);
+        valueOne && setIsValueOneError(false);
+        valueTwo && setIsValueTwoError(false);
         setAddedSuccessfulAlert(false);
         setDuplicateErrorAlert(false);
-        valueOne && (valueTwo || !valueTwoError) && setInputEmptyAlert(false);
+        valueOne && (valueTwo || !isValueTwoError) && setIsInputEmptyAlert(false);
     }, [valueOne, valueTwo]);
 
     if (!parameter) {
         return null;
     }
 
-    const onButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
-        setInputEmptyAlert(false);
+    function onButtonClick(e: MouseEvent<HTMLButtonElement>) {
+        setIsInputEmptyAlert(false);
         setAddedSuccessfulAlert(false);
         setDuplicateErrorAlert(false);
-        setValueOneError(false);
-        setValueTwoError(false);
-        if (valueOne && !/^\s*$/.test(valueOne)) {
+        setIsValueOneError(false);
+        setIsValueTwoError(false);
+        if (valueOne && !/^\s*$/.test(valueOne) && !/[\/\\]/.test(valueOne)) {
             const trimmedValueOne = valueOne.trim();
             let trimmedValueTwo = '';
-            if ((parameter === 2 && valueTwo) || (parameter === 4 && valueTwo) || (parameter === 6 && valueTwo)) {
+            if ((parameter === 'category' && valueTwo) || (parameter === 'supplier' && valueTwo) || (parameter === 'printer' && valueTwo)) {
                 trimmedValueTwo = valueTwo.trim();
             }
-            let tableToFetch: string | null;
             let objectToSend: IObjectToSend | null = null;
             switch (parameter) {
-                case 1:
-                    tableToFetch = 'type';
+                case 'type':
                     objectToSend = { typeName: trimmedValueOne, category: valueTwo };
                     break;
-                case 2:
-                    tableToFetch = 'category';
+                case 'category':
                     objectToSend = { categoryName: trimmedValueOne, prefix: trimmedValueTwo };
                     break;
-                case 3:
-                    tableToFetch = 'location';
+                case 'location':
                     objectToSend = { locationName: trimmedValueOne };
                     break;
-                case 4:
-                    tableToFetch = 'supplier';
+                case 'supplier':
                     objectToSend = { supplierName: trimmedValueOne, link: trimmedValueTwo };
                     break;
-                case 5:
-                    tableToFetch = 'department';
+                case 'department':
                     objectToSend = { departmentName: trimmedValueOne };
                     break;
-                case 6:
-                    tableToFetch = 'printer';
+                case 'printer':
                     objectToSend = { printerName: trimmedValueOne, printerIp: trimmedValueTwo };
                     break;
                 default:
-                    tableToFetch = '';
                     break;
             }
-            if ((parameter !== 1 && parameter !== 2 && parameter !== 6) || valueTwo) {
-                if (parameter === 2 && trimmedValueTwo) {
+            if ((parameter !== 'type' && parameter !== 'category' && parameter !== 'printer') || valueTwo) {
+                if (parameter === 'category' && trimmedValueTwo) {
                     if (trimmedValueTwo.length >= 2 && trimmedValueTwo.length <= 6 && trimmedValueTwo.match(/^[a-z0-9]+$/i)) {
-                        onClick(e, objectToSend, tableToFetch);
+                        onClick(e, objectToSend, parameter);
                         setValueOne('');
                         setValueTwo('');
                     } else {
-                        setInputEmptyAlert(true);
-                        setValueTwoError(true);
+                        setIsInputEmptyAlert(true);
+                        setIsValueTwoError(true);
                     }
                 } else {
-                    onClick(e, objectToSend, tableToFetch);
+                    onClick(e, objectToSend, parameter);
                     setValueOne('');
                     setValueTwo('');
                 }
             } else {
-                setInputEmptyAlert(true);
-                setValueTwoError(true);
+                setIsInputEmptyAlert(true);
+                setIsValueTwoError(true);
             }
         } else {
-            setInputEmptyAlert(true);
-            setValueOneError(true);
-            if ((parameter === 1 && !valueTwo) || (parameter === 2 && !valueTwo) || (parameter === 6 && !valueTwo)) {
-                setValueTwoError(true);
+            setIsInputEmptyAlert(true);
+            setIsValueOneError(true);
+            if ((parameter === 'type' && !valueTwo) || (parameter === 'category' && !valueTwo) || (parameter === 'printer' && !valueTwo)) {
+                setIsValueTwoError(true);
             } else {
-                setValueTwoError(false);
+                setIsValueTwoError(false);
             }
         }
-    };
+    }
 
-    const renderTable = (param: number) => {
+    function renderTable(param: string) {
         switch (param) {
-            case 1:
+            case 'type':
                 return <DataTableType typeList={tableList as IType[]} />;
-            case 2:
+            case 'category':
                 return <DataTableCategory categoryList={tableList as ICategory[]} />;
-            case 3:
+            case 'location':
                 return <DataTableLocation locationList={tableList as ILocation[]} />;
-            case 4:
+            case 'supplier':
                 return <DataTableSupplier supplierList={tableList as ISupplier[]} />;
-            case 6:
+            case 'department':
+                return <DataTableDepartment departmentList={tableList as IDepartment[]} />;
+            case 'printer':
                 return <DataTablePrinter printerList={tableList as IPrinter[]} />;
             default:
                 return null;
         }
-    };
-    return (
-        <Grid
-            container
-            justifyContent="center"
-        >
-            <Grid item>
-                <Box sx={{ my: 4 }} />
-                <Typography
-                    variant="h2"
-                    align="center"
-                >
-                    Neu anlegen
-                </Typography>
-                <Box sx={{ my: 2 }} />
-                <CustomTextField
-                    label="Bezeichnung"
-                    value={valueOne}
-                    setValue={setValueOne}
-                    required={true}
-                    error={valueOneError}
-                />
-                {parameter === 1 && (
-                    <CustomAutocomplete
-                        options={categoryOptions}
-                        optionKey="categoryName"
-                        label="Kategorie"
-                        value={valueTwo?.['categoryName'] ?? ''}
-                        setValue={setValueTwo}
-                        required={true}
-                        error={valueTwoError}
-                    />
-                )}
-                {parameter === 2 && (
-                    <CustomTextField
-                        label="Präfix für Inventarnummer"
-                        value={valueTwo}
-                        setValue={setValueTwo}
-                        error={valueTwoError}
-                        required={true}
-                        helperText={'2-6 Zeichen, keine Sonderzeichen'}
-                    />
-                )}
-                {parameter === 4 && (
-                    <CustomTextField
-                        label="Link"
-                        value={valueTwo}
-                        setValue={setValueTwo}
-                        error={valueTwoError}
-                    />
-                )}
-                {parameter === 6 && (
-                    <CustomTextField
-                        label="IP-Adresse"
-                        value={valueTwo}
-                        setValue={setValueTwo}
-                        error={valueTwoError}
-                        required={true}
-                        disabled={!admin && !superAdmin}
-                    />
-                )}
-                {addSuccessfulAlert && (
-                    <CustomAlert
-                        state="success"
-                        message="Parameter erfolgreich angelegt!"
-                    />
-                )}
-                {inputEmptyAlert && (
-                    <CustomAlert
-                        state="error"
-                        message="Pflichtfelder beachten!"
-                    />
-                )}
-                {duplicateErrorAlert && (
-                    <CustomAlert
-                        state="error"
-                        message="Parameter existiert bereits!"
-                    />
-                )}
-                <Grid
-                    container
-                    direction="row"
-                    justifyContent="center"
-                    alignItems="center"
-                >
-                    <CustomButton
-                        onClick={onButtonClick}
-                        label="Anlegen"
-                        symbol={<Add />}
-                    />
-                </Grid>
-            </Grid>
-            {parameter !== 5 && (
-                <Grid
-                    container
-                    justifyContent="center"
-                >
-                    <Box sx={{ my: 5.5 }} />
-                    <Typography
-                        variant="h2"
-                        align="center"
-                        marginTop="1.5em"
-                    >
-                        Übersicht
-                    </Typography>
-                    <Box sx={{ my: 3 }} />
-                </Grid>
-            )}
-            <Grid
-                item
-                height="auto"
-                width="95%"
-                margin="auto"
-            >
-                {renderTable(parameter)}
-            </Grid>
-        </Grid>
-    );
-};
+    }
 
-export default ParameterForm;
+    return (
+        <>
+            <CustomHeading2 text="Neuen Parameter anlegen" />
+            <Box my={0.5} />
+            <CustomTextField
+                label="Bezeichnung"
+                value={valueOne}
+                setValue={setValueOne}
+                isRequired={true}
+                isError={isValueOneError}
+                helperText={valueOne && isValueOneError ? '/ und \\ sind hier nicht erlaubt!' : undefined}
+            />
+            {parameter === 'type' && (
+                <CustomAutocomplete
+                    options={categoryOptions}
+                    optionKey="categoryName"
+                    label="Kategorie"
+                    value={valueTwo?.['categoryName'] ?? ''}
+                    setValue={setValueTwo}
+                    isRequired={true}
+                    isError={isValueTwoError}
+                />
+            )}
+            {parameter === 'category' && (
+                <CustomTextField
+                    label="Präfix für Inventarnummer"
+                    value={valueTwo}
+                    setValue={setValueTwo}
+                    isError={isValueTwoError}
+                    isRequired={true}
+                    helperText={'2-6 Zeichen, keine Sonderzeichen'}
+                />
+            )}
+            {parameter === 'supplier' && (
+                <CustomTextField
+                    label="Link"
+                    value={valueTwo}
+                    setValue={setValueTwo}
+                    isError={isValueTwoError}
+                />
+            )}
+            {parameter === 'printer' && (
+                <CustomTextField
+                    label="IP-Adresse"
+                    value={valueTwo}
+                    setValue={setValueTwo}
+                    isError={isValueTwoError}
+                    isRequired={true}
+                    isDisabled={!isAdmin && !isSuperAdmin}
+                />
+            )}
+            {addSuccessfulAlert && (
+                <CustomAlert
+                    state="success"
+                    message="Parameter erfolgreich angelegt!"
+                />
+            )}
+            {isInputEmptyAlert && (
+                <CustomAlert
+                    state="error"
+                    message="Pflichtfelder beachten!"
+                />
+            )}
+            {duplicateErrorAlert && (
+                <CustomAlert
+                    state="error"
+                    message="Parameter existiert bereits!"
+                />
+            )}
+            <CustomButton
+                onClick={onButtonClick}
+                label="Anlegen"
+                symbol={<Add />}
+            />
+            <Box my={1.5} />
+            <CustomHeading2 text="Bestehende Parameter" />
+            <Box my={1} />
+            {renderTable(parameter)}
+        </>
+    );
+}

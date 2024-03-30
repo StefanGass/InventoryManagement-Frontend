@@ -1,6 +1,6 @@
-import { FC } from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { IPrinter } from 'components/interfaces';
+import { Box } from '@mui/material';
 
 interface IDataTablePrinterProps {
     printerList: IPrinter[];
@@ -13,29 +13,43 @@ const columns: GridColDef[] = [
     { field: 'labelFormat', headerName: 'Label-Format', width: 150 }
 ];
 
-const DataTableCategory: FC<IDataTablePrinterProps> = (props) => {
+export default function DataTableCategory(props: IDataTablePrinterProps) {
     const { printerList } = props;
 
     return (
-        <div style={printerList.length < 15 ? { height: 'auto' } : { height: 700 }}>
+        <Box
+            style={
+                printerList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 700 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 700
+                      }
+            }
+        >
             <DataGrid
                 rows={printerList.map((printer: IPrinter) => ({
                     id: printer.id,
                     printerName: printer.printerName,
-                    printerIp: printer.printerIp,
+                    printerIp: printer.printerIp.slice(6), // remove the leading 'tcp://'
                     printerModel: printer.printerModel,
                     labelFormat: printer.labelFormat
                 }))}
                 autoHeight={printerList.length < 15}
                 density="compact"
                 columns={columns}
-                pageSize={50}
-                rowsPerPageOptions={[50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: 50
+                        }
+                    }
+                }}
+                pageSizeOptions={[50]}
                 hideFooterSelectedRowCount
-                components={{ Toolbar: GridToolbar }}
+                slots={{ toolbar: GridToolbar }}
             />
-        </div>
+        </Box>
     );
-};
-
-export default DataTableCategory;
+}

@@ -1,38 +1,53 @@
-import { FC } from 'react';
-import { Button, Grid, Typography } from '@mui/material';
+import React, { useContext } from 'react';
+import { Button, ButtonPropsColorOverrides, Grid, Typography } from '@mui/material';
+import { OverridableStringUnion } from '@mui/types';
+import { darkGrey, lightGrey } from 'styles/theme';
+import { UserContext } from '../../../pages/_app';
 
-interface ICustomButton {
-    onClick: (e?: any) => void;
+interface ICustomButtonProps {
+    keyString?: string;
     label: string;
-    symbol?: JSX.Element;
-    disabled?: boolean;
+    symbol?: React.JSX.Element;
+    color?: OverridableStringUnion<'primary' | 'inherit' | 'secondary' | 'success' | 'error' | 'info' | 'warning', ButtonPropsColorOverrides> | undefined;
+    onClick: (e?: any) => void;
+    isDoubleHeight?: boolean;
+    isDisabled?: boolean;
 }
 
-const CustomButton: FC<ICustomButton> = ({ onClick, label, symbol, disabled }) => {
+export default function CustomButton(props: ICustomButtonProps) {
+    const { keyString, label, symbol, color = 'primary', onClick, isDoubleHeight = false, isDisabled } = props;
+    const { themeMode } = useContext(UserContext);
     return (
         <Grid
             sx={{
-                cursor: `${disabled ? 'not-allowed' : 'pointer'}`,
+                cursor: `${isDisabled ? 'not-allowed' : 'pointer'}`,
                 marginTop: '1em',
                 marginBottom: '1em',
-                marginRight: '0.5em',
-                marginLeft: '0.5em'
+                marginRight: '1em',
+                marginLeft: '1em'
             }}
         >
             <Button
+                key={keyString} // to disable react warnings
                 variant="contained"
                 onClick={onClick}
-                disabled={disabled}
-                style={{
-                    height: '4em',
-                    width: '19.35em'
+                disabled={isDisabled}
+                color={color}
+                sx={{
+                    height: isDoubleHeight ? '8em' : '4em',
+                    width: '19.35em',
+                    border: color === 'inherit' ? `0.5px solid ${themeMode === 'dark' ? darkGrey : lightGrey}` : null
                 }}
             >
                 {symbol}
-                <Typography>&nbsp;&nbsp;{label}&nbsp;&nbsp;&nbsp;</Typography>
+                <Typography
+                    fontSize={isDoubleHeight ? '1.5rem' : '1rem'}
+                    fontWeight={isDoubleHeight ? 'bold' : 'normal'}
+                    sx={{ marginRight: '0.5em', marginLeft: '0.5em' }}
+                >
+                    {label}
+                </Typography>
             </Button>
         </Grid>
     );
-};
-
-export default CustomButton;
+}

@@ -1,28 +1,61 @@
-import { FC, useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { IPicture } from 'components/interfaces';
-import { Container, useMediaQuery } from '@mui/material';
+import { Box, Container, useMediaQuery } from '@mui/material';
 import styles from 'styles/ImageGallery.module.scss';
-import { UserContext } from 'pages/_app';
-import lightTheme from 'styles/theme';
+import { UserContext } from '../../../pages/_app';
+import defaultTheme from 'styles/theme';
+import inventoryManagementService from 'service/inventoryManagementService';
 
 interface IImageGalleryProps {
     images: IPicture[];
 }
 
-const ImageGallery: FC<IImageGalleryProps> = ({ images }) => {
+export default function ImageGallery(props: IImageGalleryProps) {
+    const { images } = props;
     const [activeImage, setActiveImage] = useState<IPicture | null>(images[0]);
     const { themeMode } = useContext(UserContext);
-    const matchesTablet = useMediaQuery(lightTheme.breakpoints.down('md'));
+    const matchesTablet = useMediaQuery(defaultTheme.breakpoints.down('md'));
 
-    const getImages = () => {
+    function openPictureInPopUp(picture: IPicture | null) {
+        const image = new Image();
+        image.style.maxWidth = '100%';
+        image.style.maxHeight = '100%';
+        image.src = picture?.pictureUrl as string;
+        const w = window.open('', '', 'popup');
+        if (w) {
+            w.document.body.style.margin = '0';
+            w.document.body.style.height = '100vh';
+            w.document.body.style.display = 'flex';
+            w.document.body.style.justifyContent = 'center';
+            w.document.body.style.alignItems = 'center';
+            w.document.body.appendChild(image);
+        }
+    }
+
+    function onOpen() {
+        if (activeImage?.thumbnailUrl) {
+            inventoryManagementService
+                .getPicture(activeImage.id as number)
+                .then((picture) => {
+                    openPictureInPopUp(picture);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            openPictureInPopUp(activeImage);
+        }
+    }
+
+    function getImages() {
         if (images) {
             return (
-                <div className={images.length < 4 && !matchesTablet ? styles.thumbnailcontainer : `${styles.thumbnailcontainer} ${styles.morethanthree}`}>
+                <Box className={images.length < 4 && !matchesTablet ? styles.thumbnailcontainer : `${styles.thumbnailcontainer} ${styles.morethanthree}`}>
                     {images.map((picture, index) => {
                         const image = new Image();
-                        image.src = picture.pictureUrl as string;
+                        image.src = picture.thumbnailUrl ? (picture.thumbnailUrl as string) : (picture.pictureUrl as string);
                         return (
-                            <div
+                            <Box
                                 key={`picture-${picture.id}-${index}`}
                                 className={
                                     picture.id === activeImage?.id
@@ -30,8 +63,8 @@ const ImageGallery: FC<IImageGalleryProps> = ({ images }) => {
                                             ? `${styles.thumbnail} ${styles.activedarkmode}`
                                             : `${styles.thumbnail} ${styles.activelightmode}`
                                         : themeMode === 'dark'
-                                        ? `${styles.thumbnail} ${styles.darkmode}`
-                                        : `${styles.thumbnail} ${styles.lightmode}`
+                                          ? `${styles.thumbnail} ${styles.darkmode}`
+                                          : `${styles.thumbnail} ${styles.lightmode}`
                                 }
                                 onClick={() => setActiveImage(picture)}
                             >
@@ -39,34 +72,27 @@ const ImageGallery: FC<IImageGalleryProps> = ({ images }) => {
                                     src={image.src}
                                     alt={image.alt}
                                 />
-                            </div>
+                            </Box>
                         );
                     })}
-                </div>
+                </Box>
             );
         } else {
             return null;
         }
-    };
+    }
 
     return matchesTablet ? (
         <Container disableGutters>
-            <div
+            <Box
                 className={themeMode === 'dark' ? `${styles.image} ${styles.darkmode}` : `${styles.image} ${styles.lightmode}`}
-                onClick={() => {
-                    const image = new Image();
-                    image.src = activeImage?.pictureUrl as string;
-                    const w = window.open('', '', 'popup');
-                    if (w) {
-                        w.document.write(image.outerHTML);
-                    }
-                }}
+                onClick={() => onOpen()}
             >
                 <img
-                    src={activeImage?.pictureUrl as string}
-                    alt="active image"
+                    src={activeImage?.thumbnailUrl ? (activeImage?.thumbnailUrl as string) : (activeImage?.pictureUrl as string)}
+                    alt="Zurzeit ausgewähltes Bild des Inventargegenstands"
                 />
-            </div>
+            </Box>
             {getImages()}
         </Container>
     ) : (
@@ -77,26 +103,17 @@ const ImageGallery: FC<IImageGalleryProps> = ({ images }) => {
             }}
             disableGutters
         >
-            <div
+            <Box
                 className={themeMode === 'dark' ? `${styles.image} ${styles.darkmode}` : `${styles.image} ${styles.lightmode}`}
-                onClick={() => {
-                    const image = new Image();
-                    image.src = activeImage?.pictureUrl as string;
-                    const w = window.open('', '', 'popup');
-                    if (w) {
-                        w.document.write(image.outerHTML);
-                    }
-                }}
+                onClick={() => onOpen()}
                 style={{ marginRight: '10px' }}
             >
                 <img
-                    src={activeImage?.pictureUrl as string}
-                    alt="active image"
+                    src={activeImage?.thumbnailUrl ? (activeImage?.thumbnailUrl as string) : (activeImage?.pictureUrl as string)}
+                    alt="Zurzeit ausgewähltes Bild des Inventargegenstands"
                 />
-            </div>
+            </Box>
             {getImages()}
         </Container>
     );
-};
-
-export default ImageGallery;
+}

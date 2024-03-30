@@ -1,8 +1,7 @@
-import { FC } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 import CustomButton from 'components/form-fields/CustomButton';
 import { Add, ArrowForward, Repeat } from '@mui/icons-material';
-import { IDetailInventoryItem, IPrinter } from 'components/interfaces';
+import { IDetailInventoryItem, IPictureUpload, IPrinter } from 'components/interfaces';
 import PrintingForm from 'components/forms/inventory-form/PrintingForm';
 import CustomDivider from 'components/layout/CustomDivider';
 import { useRouter } from 'next/router';
@@ -10,6 +9,7 @@ import QrCode from 'components/layout/QrCode';
 
 interface IAskAgainFormGroupProps {
     inventoryItem: IDetailInventoryItem;
+    setPictureList: (list: IPictureUpload[]) => void;
     refreshInternalNumber: () => void;
     setAskAgain: (bool: boolean) => void;
     setReloadDepartment: (bool: boolean) => void;
@@ -17,15 +17,20 @@ interface IAskAgainFormGroupProps {
     printer: IPrinter[];
 }
 
-const AskAgainFormGroup: FC<IAskAgainFormGroupProps> = (props) => {
-    const { inventoryItem, refreshInternalNumber, setAskAgain, setReloadDepartment, setDefaultForm, printer } = props;
+export default function AskAgainFormGroup(props: IAskAgainFormGroupProps) {
+    const { inventoryItem, setPictureList, refreshInternalNumber, setAskAgain, setReloadDepartment, setDefaultForm, printer } = props;
     const router = useRouter();
 
     return (
-        <Box sx={{ display: 'flex', flexFlow: 'column wrap', width: '100%', alignItems: 'center' }}>
-            <Box sx={{ my: 0.5 }} />
+        <Box
+            display="flex"
+            alignItems="center"
+            width="100%"
+            sx={{ flexFlow: 'column wrap' }}
+        >
+            <Box my={0.5} />
             <Typography>Folgender Gegenstand wurde dem Inventar hinzugefügt:</Typography>
-            <Box sx={{ my: 0.5 }} />
+            <Box my={0.5} />
             <Grid
                 sx={{
                     display: 'flex',
@@ -50,9 +55,9 @@ const AskAgainFormGroup: FC<IAskAgainFormGroupProps> = (props) => {
                     {inventoryItem.itemInternalNumber}
                 </Typography>
             </Grid>
-            <Box sx={{ my: 1.5 }} />
+            <Box my={0.5} />
             <CustomButton
-                label={'Zu der Detailseite von ' + inventoryItem.itemInternalNumber}
+                label="Zur Detailseite"
                 onClick={() => {
                     router.push(`/details/${inventoryItem.id}`);
                 }}
@@ -66,7 +71,7 @@ const AskAgainFormGroup: FC<IAskAgainFormGroupProps> = (props) => {
                 alignItems="center"
             >
                 <CustomButton
-                    label="Inventargegenstand erneut anlegen"
+                    label="Gegenstand erneut anlegen"
                     onClick={() => {
                         refreshInternalNumber();
                         setAskAgain(false);
@@ -77,6 +82,7 @@ const AskAgainFormGroup: FC<IAskAgainFormGroupProps> = (props) => {
                     label="Neuen Gegenstand anlegen"
                     onClick={() => {
                         setDefaultForm();
+                        setPictureList([]);
                         setReloadDepartment(true);
                         setAskAgain(false);
                     }}
@@ -91,8 +97,7 @@ const AskAgainFormGroup: FC<IAskAgainFormGroupProps> = (props) => {
                     showHeadline={true}
                 />
             )}
+            <Box my={1} />
         </Box>
     );
-};
-
-export default AskAgainFormGroup;
+}
