@@ -1,5 +1,5 @@
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import {Box, Grid} from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import { IChartItem } from 'components/interfaces';
 
 interface IDataTableTypeChartProps {
@@ -7,14 +7,14 @@ interface IDataTableTypeChartProps {
 }
 
 const columns: GridColDef[] = [
-    { field: 'type', headerName: 'Typ', width: 200 },
-    { field: 'category', headerName: 'Kategorie', width: 140 },
-    { field: 'pieces', headerName: 'Stück gesamt', width: 120 },
-    { field: 'piecesStored', headerName: 'lagernd', width: 100 },
-    { field: 'piecesIssued', headerName: 'ausgegeben', width: 100 },
-    { field: 'piecesDropped', headerName: 'ausgeschieden', width: 100 },
-    { field: 'locations', headerName: 'Standort(e)', width: 400 },
-    { field: 'departments', headerName: 'Abteilung(en)', width: 300 }
+    { field: 'type', headerName: 'Typ', width: 200, type: 'string' },
+    { field: 'category', headerName: 'Kategorie', width: 140, type: 'string' },
+    { field: 'pieces', headerName: 'Stück gesamt', width: 120, type: 'number' },
+    { field: 'piecesStored', headerName: 'Stk. lagernd', width: 120, type: 'number' },
+    { field: 'piecesIssued', headerName: 'Stk. ausgegeb.', width: 120, type: 'number' },
+    { field: 'piecesDropped', headerName: 'Stk. ausgesch.', width: 120, type: 'number' },
+    { field: 'locations', headerName: 'Standort(e)', width: 450, type: 'string' },
+    { field: 'departments', headerName: 'Abteilung(en)', width: 350, type: 'string' }
 ];
 
 export default function DataTableInventory(props: IDataTableTypeChartProps) {

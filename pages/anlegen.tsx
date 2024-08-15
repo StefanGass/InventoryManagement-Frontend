@@ -26,8 +26,8 @@ export default function Anlegen() {
         setIsLoading(false);
     }
 
-    function getRequest() {
-        fetch(`${process.env.HOSTNAME}/api/inventorymanagement/` + parameter, {
+    function getRequest(queryString: string) {
+        fetch(`${process.env.HOSTNAME}/api/inventorymanagement/` + queryString, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         }).then((response) => {
@@ -49,11 +49,11 @@ export default function Anlegen() {
     }
 
     useEffect(() => {
-        if (parameter && parameter !== 'departmentMember' && parameter !== 'droppingReviewer') {
+        setIsServerError(false);
+        setIsAddSuccessfulAlert(false);
+        setIsDuplicateErrorAlert(false);
+        if (parameter && parameter !== 'droppingReviewer') {
             setIsLoading(true);
-            setIsServerError(false);
-            setIsAddSuccessfulAlert(false);
-            setIsDuplicateErrorAlert(false);
             if (parameter === 'type') {
                 fetch(`${process.env.HOSTNAME}/api/inventorymanagement/category`, {
                     method: 'GET',
@@ -65,7 +65,7 @@ export default function Anlegen() {
                                 .json()
                                 .then((result: ICategory[]) => {
                                     setCategoryOptionsList(result);
-                                    getRequest();
+                                    getRequest(parameter);
                                 })
                                 .catch((error) => {
                                     handleError(error);
@@ -77,8 +77,10 @@ export default function Anlegen() {
                     .catch((error) => {
                         handleError(error);
                     });
+            } else if (parameter === 'departmentMember') {
+                getRequest('department');
             } else {
-                getRequest();
+                getRequest(parameter);
             }
         }
     }, [parameter]);
@@ -96,7 +98,7 @@ export default function Anlegen() {
             }).then((response) => {
                 if (response.ok) {
                     setIsAddSuccessfulAlert(true);
-                    getRequest();
+                    getRequest(parameter);
                 } else {
                     setIsDuplicateErrorAlert(true);
                 }

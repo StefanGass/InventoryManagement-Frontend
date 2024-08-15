@@ -6,7 +6,7 @@ interface IDataTableLocationProps {
     locationList: ILocation[];
 }
 
-const columns: GridColDef[] = [{ field: 'locationName', headerName: 'Standort', width: 400 }];
+const columns: GridColDef[] = [{ field: 'locationName', headerName: 'Standort', width: 400, type: 'string' }];
 
 export default function DataTableLocation(props: IDataTableLocationProps) {
     const { locationList } = props;

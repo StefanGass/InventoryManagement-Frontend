@@ -46,8 +46,7 @@ export default function LoginForm() {
             .catch((error) => {
                 console.log(error);
             })
-            .finally(() => {
-                // this needs to be done here, else an admin without a department won't be able to log in
+            .finally(() => { // this needs to be done here, else an admin without a department won't be able to log in
                 setIsAuthenticated(true);
                 setAvailableRoutesList(routes);
             });

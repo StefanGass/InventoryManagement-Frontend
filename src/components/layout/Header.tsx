@@ -102,7 +102,19 @@ export default function Header(props: IHeaderProps) {
                         <Tooltip
                             title={isUseSymbolInHeader ? name : null}
                             enterDelay={500}
-                            followCursor={true}
+                            placement="bottom"
+                            slotProps={{
+                                popper: {
+                                    modifiers: [
+                                        {
+                                            name: 'offset',
+                                            options: {
+                                                offset: [0, -5]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }}
                         >
                             <Link
                                 href={link}
@@ -146,7 +158,19 @@ export default function Header(props: IHeaderProps) {
                 <Tooltip
                     title="ABMELDEN"
                     enterDelay={500}
-                    followCursor={true}
+                    placement="bottom"
+                    slotProps={{
+                        popper: {
+                            modifiers: [
+                                {
+                                    name: 'offset',
+                                    options: {
+                                        offset: [0, -5]
+                                    }
+                                }
+                            ]
+                        }
+                    }}
                 >
                     <Grid item>
                         <Button

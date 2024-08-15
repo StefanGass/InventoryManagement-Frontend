@@ -7,8 +7,8 @@ interface IDataTableSupplierProps {
 }
 
 const columns: GridColDef[] = [
-    { field: 'supplierName', headerName: 'Lieferant', width: 250 },
-    { field: 'link', headerName: 'Link', width: 500 }
+    { field: 'supplierName', headerName: 'Lieferant', width: 250, type: 'string' },
+    { field: 'link', headerName: 'Link', width: 500, type: 'string' }
 ];
 
 export default function DataTableSupplier(props: IDataTableSupplierProps) {

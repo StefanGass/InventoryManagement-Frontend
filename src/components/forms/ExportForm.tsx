@@ -360,7 +360,7 @@ export default function ExportForm(props: ExportFormProps) {
                 />
             </Grid>
             <Container maxWidth="sm">
-                <ExportSelectionInformation label="Das Feld 'Lieferdatum' ist im Inventargegenstand kein Pflichtfeld - wenn es als Filter gesetzt wird, dort aber beim jeweiligen Gegenstand nichts hinterlegt ist, wird er aus der Auswertung exkludiert." />
+                <ExportSelectionInformation label="Das Feld 'Liefer-/Kaufdatum' ist im Inventargegenstand kein Pflichtfeld - wenn es als Filter gesetzt wird, dort aber nichts hinterlegt ist, wird der Gegenstand aus der Auswertung exkludiert." />
             </Container>
             <Grid
                 container
@@ -369,7 +369,7 @@ export default function ExportForm(props: ExportFormProps) {
                 marginTop={0.5}
             >
                 <CustomDatePicker
-                    label="Lieferdatum von"
+                    label="Liefer-/Kaufdatum von"
                     value={exportForm.deliveryDateFrom}
                     setValue={(val) => {
                         setExportForm({ ...exportForm, deliveryDateFrom: val } as IExportFormTable);
@@ -379,7 +379,7 @@ export default function ExportForm(props: ExportFormProps) {
                     maxDate={exportForm.deliveryDateTo}
                 />
                 <CustomDatePicker
-                    label="Lieferdatum bis"
+                    label="Liefer-/Kaufdatum bis"
                     value={exportForm.deliveryDateTo}
                     setValue={(val) => {
                         setExportForm({ ...exportForm, deliveryDateTo: val } as IExportFormTable);

@@ -8,7 +8,6 @@ import ErrorInformation from 'components/layout/ErrorInformation';
 import inventoryManagementService from 'service/inventoryManagementService';
 import CustomAlert from 'components/form-fields/CustomAlert';
 import { UserContext } from './_app';
-import { EmojiEmotions } from '@mui/icons-material';
 
 export default function Aufgaben() {
     const { isAdminModeActivated, departmentId, isDroppingReviewer } = useContext(UserContext);
@@ -87,8 +86,6 @@ export default function Aufgaben() {
                             <Box my={2} />
                             <Typography textAlign="center">
                                 Derzeit sind in deiner Abteilung keine Ausscheidungs- oder Deaktivierungs-Aufgaben nach dem 4-Augen-Prinzip offen.
-                                <br />
-                                Hier gibt es also zurzeit nichts zu tun. <EmojiEmotions fontSize="small" />
                             </Typography>
                         </>
                     )}

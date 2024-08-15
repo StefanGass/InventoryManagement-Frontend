@@ -54,14 +54,16 @@ export default function ParameterFormDepartment(props: IParameterFormDepartmentP
     }
 
     useEffect(() => {
+        setIsAddMemberSuccessfulAlert(false);
+        setIsAddMemberDuplicateErrorAlert(false);
         if (!isFirstRender && isSend) {
             useFormValidation(form, formValidation, setFormValidation);
-            setIsAddMemberSuccessfulAlert(false);
-            setIsAddMemberDuplicateErrorAlert(false);
         }
     }, [form.user]);
 
     useEffect(() => {
+        setIsAddMemberSuccessfulAlert(false);
+        setIsAddMemberDuplicateErrorAlert(false);
         if (!isFirstRender) {
             setIsLoading(true);
             fetchAndMergeChosenDepartmentWithUserList();

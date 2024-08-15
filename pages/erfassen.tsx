@@ -1,16 +1,19 @@
 import { useContext, useEffect, useState } from 'react';
 import LoadingSpinner from 'components/layout/LoadingSpinner';
-import { IDepartment, IDetailInventoryItem, ILocation, IPrinter, ISupplier, IType } from 'components/interfaces';
+import { ICategory, IDepartment, IDetailInventoryItem, ILocation, IPrinter, ISupplier, IType } from 'components/interfaces';
 import InventoryForm from 'components/forms/inventory-form/InventoryForm';
 import { Alert, Container } from '@mui/material';
 import { UserContext } from './_app';
 import ErrorInformation from 'components/layout/ErrorInformation';
 
 export default function Erfassen() {
-    const { userId, firstName, lastName, isAdmin, isSuperAdmin, departmentId, departmentName } = useContext(UserContext);
+    const { userId, firstName, lastName, isAdmin, isSuperAdmin, isAdminModeActivated, departmentId, departmentName } = useContext(UserContext);
 
+    const [category, setCategory] = useState<ICategory[] | JSON | null>(null);
     const [type, setType] = useState<IType[] | JSON | null>(null);
+    const [itemName, setItemName] = useState<string[] | JSON | null>(null);
     const [location, setLocation] = useState<ILocation[] | JSON | null>(null);
+    const [room, setRoom] = useState<string[] | JSON | null>(null);
     const [supplier, setSupplier] = useState<ISupplier[] | JSON | null>(null);
     const [printer, setPrinter] = useState<IPrinter[] | JSON | null>(null);
     const [department, setDepartment] = useState<IDepartment[] | JSON | null>(null);
@@ -32,6 +35,7 @@ export default function Erfassen() {
     }
 
     useEffect(() => {
+        fetchData('category', setCategory).catch(() => setIsServerError(true));
         fetchData('type', setType).catch(() => setIsServerError(true));
         fetchData('location', setLocation).catch(() => setIsServerError(true));
         fetchData('supplier', setSupplier).catch(() => setIsServerError(true));
@@ -41,6 +45,8 @@ export default function Erfassen() {
         } else {
             setDepartment([{ id: departmentId, departmentName }]);
         }
+        fetchData(isAdminModeActivated ? 'itemname/0' : 'itemname/' + departmentId, setItemName).catch(() => setIsServerError(true)); // 0 for all itemNames
+        fetchData(isAdminModeActivated ? 'room/0' : 'room/' + departmentId, setRoom).catch(() => setIsServerError(true)); // 0 for all rooms
         setIsLoading(false);
     }, []);
 
@@ -83,9 +89,14 @@ export default function Erfassen() {
                 <Alert severity="error">Es ist folgender fehler aufgetreten: {formError}</Alert>
             ) : (
                 <InventoryForm
+                    category={category as ICategory[]}
                     type={type as IType[]}
+                    itemName={itemName as string[]}
+                    setItemName={setItemName}
                     supplier={supplier as ISupplier[]}
                     location={location as ILocation[]}
+                    room={room as string[]}
+                    setRoom={setRoom}
                     printer={printer as IPrinter[]}
                     department={department as IDepartment[]}
                     onFormSent={onFormSent}

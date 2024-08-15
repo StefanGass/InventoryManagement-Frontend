@@ -11,7 +11,7 @@ interface IImageGalleryProps {
 }
 
 export default function ImageGallery(props: IImageGalleryProps) {
-    const { images } = props;
+    const { images} = props;
     const [activeImage, setActiveImage] = useState<IPicture | null>(images[0]);
     const { themeMode } = useContext(UserContext);
     const matchesTablet = useMediaQuery(defaultTheme.breakpoints.down('md'));
@@ -63,8 +63,8 @@ export default function ImageGallery(props: IImageGalleryProps) {
                                             ? `${styles.thumbnail} ${styles.activedarkmode}`
                                             : `${styles.thumbnail} ${styles.activelightmode}`
                                         : themeMode === 'dark'
-                                          ? `${styles.thumbnail} ${styles.darkmode}`
-                                          : `${styles.thumbnail} ${styles.lightmode}`
+                                        ? `${styles.thumbnail} ${styles.darkmode}`
+                                        : `${styles.thumbnail} ${styles.lightmode}`
                                 }
                                 onClick={() => setActiveImage(picture)}
                             >

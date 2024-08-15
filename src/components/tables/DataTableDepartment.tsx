@@ -6,13 +6,23 @@ interface IDataTableDepartmentProps {
     departmentList: IDepartment[];
 }
 
-const columns: GridColDef[] = [{ field: 'departmentName', headerName: 'Abteilung', width: 400 }];
+const columns: GridColDef[] = [{ field: 'departmentName', headerName: 'Abteilung', width: 400, type: 'string' }];
 
 export default function DataTableDepartment(props: IDataTableDepartmentProps) {
     const { departmentList } = props;
 
     return (
-        <Box style={departmentList.length < 15 ? { height: 'auto', width: '95%', maxWidth: 505 } : { height: 700, width: '95%', maxWidth: 505 }}>
+        <Box
+            style={
+                departmentList.length < 15
+                    ? { height: 'auto', width: '95%', maxWidth: 505 }
+                    : {
+                          height: 700,
+                          width: '95%',
+                          maxWidth: 505
+                      }
+            }
+        >
             <DataGrid
                 rows={departmentList.map((department: IDepartment) => ({
                     id: department.id,

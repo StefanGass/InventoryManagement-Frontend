@@ -11,6 +11,22 @@ interface IPieChartData {
     value: number;
 }
 
+const PI_COLORS = [
+    '#0088FE',
+    '#00C49F',
+    '#FFBB28',
+    '#FF8042',
+    '#DC143C',
+    '#9400D3',
+    '#008000',
+    '#FF1493',
+    '#20B2AA',
+    '#FF6347',
+    '#6A5ACD',
+    '#D2691E',
+    '#6495ED'
+];
+
 export default function CustomPieChart(props: ICustomPieChartProps) {
     const { itemList } = props;
 
@@ -33,7 +49,7 @@ export default function CustomPieChart(props: ICustomPieChartProps) {
                         {dataList.map((entry, index) => (
                             <Cell
                                 key={`cell-${index}`}
-                                fill={'#' + Math.floor(Math.random() * 16777215).toString(16)}
+                                fill={index < 13 ? PI_COLORS[index] : '#' + Math.floor(Math.random() * 16777215).toString(16)}
                             />
                         ))}
                     </Pie>

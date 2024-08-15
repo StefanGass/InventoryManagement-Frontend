@@ -7,8 +7,8 @@ interface IDataTableTypeProps {
 }
 
 const columns: GridColDef[] = [
-    { field: 'typeName', headerName: 'Typ', width: 250 },
-    { field: 'categoryName', headerName: 'Kategorie', width: 250 }
+    { field: 'typeName', headerName: 'Typ', width: 250, type: 'string' },
+    { field: 'categoryName', headerName: 'Kategorie', width: 250, type: 'string' }
 ];
 
 export default function DataTableType(props: IDataTableTypeProps) {

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GRID_STRING_COL_DEF, GridColDef, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
@@ -12,6 +12,7 @@ import styles from 'styles/DataTableInventory.module.scss';
 import SearchForm from 'components/forms/inventory-form/SearchForm';
 import { Cancel, FlagCircle, Lock } from '@mui/icons-material';
 import { UserContext } from '../../../pages/_app';
+import { format } from 'date-fns';
 
 const getColour = (param: string) => {
     switch (param) {
@@ -29,11 +30,11 @@ const getColour = (param: string) => {
     }
 };
 
-const columns: GridColDef[] = [
-    { field: 'itemInternalNumber', headerName: 'Inventarnummer', width: 140 },
-    { field: 'category', headerName: 'Kategorie', width: 140 },
-    { field: 'type', headerName: 'Typ', width: 200 },
-    { field: 'itemName', headerName: 'Beschreibung', width: 260 },
+let columns: GridColDef[] = [
+    { field: 'itemInternalNumber', headerName: 'Inventarnummer', width: 140, type: 'string' },
+    { field: 'category', headerName: 'Kategorie', width: 140, type: 'string' },
+    { field: 'type', headerName: 'Typ', width: 200, type: 'string' },
+    { field: 'itemName', headerName: 'Beschreibung', width: 260, type: 'string' },
     {
         field: 'status',
         headerName: 'Status',
@@ -56,25 +57,74 @@ const columns: GridColDef[] = [
                     />
                 </>
             );
+        },
+        type: 'string'
+    },
+    { field: 'location', headerName: 'Standort', width: 200, type: 'string' },
+    { field: 'room', headerName: 'Raum', width: 150, type: 'string' },
+    { field: 'pieces', headerName: 'Stk. ges.', width: 75, type: 'number' },
+    { field: 'piecesStored', headerName: 'Stk. lag.', width: 75, type: 'number' },
+    { field: 'piecesIssued', headerName: 'Stk. agg.', width: 75, type: 'number' },
+    { field: 'piecesDropped', headerName: 'Stk. ags.', width: 75, type: 'number' },
+    { field: 'oldItemNumber', headerName: 'Alte Inventarnr.', width: 140, type: 'string' },
+    { field: 'serialNumber', headerName: 'Seriennummer', width: 130, type: 'string' },
+    {
+        field: 'deliveryDate',
+        headerName: 'Liefer-/Kaufdatum',
+        width: 130,
+        type: 'date',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy') : '';
         }
     },
-    { field: 'location', headerName: 'Standort', width: 200 },
-    { field: 'pieces', headerName: 'Stück', width: 60 },
     {
-        field: 'piecesStoredIssuedDropped',
-        headerName: 'La / Ag / As*',
-        width: 120
+        field: 'warrantyEndDate',
+        headerName: 'Garantieablauf',
+        width: 130,
+        type: 'date',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy') : '';
+        }
     },
-    { field: 'oldItemNumber', headerName: 'Alte Inventarnr.', width: 140 },
-    { field: 'serialNumber', headerName: 'Seriennummer', width: 130 },
-    { field: 'deliveryDate', headerName: 'Lieferdatum', width: 120 },
-    { field: 'issueDate', headerName: 'Ausgabedatum', width: 120 },
-    { field: 'issuedTo', headerName: 'Ausgegeben an', width: 140 },
-    { field: 'supplier', headerName: 'Lieferant', width: 120 },
-    { field: 'department', headerName: 'Abteilung', width: 120 },
-    { field: 'droppingDate', headerName: 'Ausscheidedatum', width: 140 },
-    { field: 'creationDate', headerName: 'Anlagedatum', width: 160 },
-    { field: 'lastChangedDate', headerName: 'Letzte Änderung', width: 160 }
+    {
+        field: 'issueDate',
+        headerName: 'Ausgabedatum',
+        width: 120,
+        type: 'date',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy') : '';
+        }
+    },
+    { field: 'issuedTo', headerName: 'Ausgegeben an', width: 140, type: 'string' },
+    { field: 'supplier', headerName: 'Lieferant', width: 120, type: 'string' },
+    { field: 'department', headerName: 'Abteilung', width: 120, type: 'string' },
+    {
+        field: 'droppingDate',
+        headerName: 'Ausscheidedatum',
+        width: 140,
+        type: 'date',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy') : '';
+        }
+    },
+    {
+        field: 'creationDate',
+        headerName: 'Anlagedatum',
+        width: 160,
+        type: 'dateTime',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy, HH:mm') : '';
+        }
+    },
+    {
+        field: 'lastChangedDate',
+        headerName: 'Letzte Änderung',
+        width: 160,
+        type: 'dateTime',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy, HH:mm') : '';
+        }
+    }
 ];
 
 const droppingInformationColumns: GridColDef[] = [
@@ -94,12 +144,21 @@ const droppingInformationColumns: GridColDef[] = [
                     color="warning"
                 />
             );
+        },
+        type: 'string'
+    },
+    { field: 'droppingQueue', headerName: 'Vorgang', width: 120, type: 'string' },
+    { field: 'droppingQueuePieces', headerName: 'Anzahl', width: 80, type: 'string' },
+    {
+        field: 'droppingQueueDate',
+        headerName: 'Datum',
+        width: 140,
+        type: 'dateTime',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy, HH:mm') : '';
         }
     },
-    { field: 'droppingQueue', headerName: 'Vorgang', width: 120 },
-    { field: 'droppingQueuePieces', headerName: 'Anzahl', width: 80 },
-    { field: 'droppingQueueDate', headerName: 'Datum', width: 100 },
-    { field: 'droppingQueueReason', headerName: 'Grund', width: 200 },
+    { field: 'droppingQueueReason', headerName: 'Grund', width: 200, type: 'string' },
     {
         field: 'separationLine',
         headerName: '||',
@@ -108,9 +167,20 @@ const droppingInformationColumns: GridColDef[] = [
         sortable: false,
         disableColumnMenu: true,
         headerAlign: 'center',
-        align: 'center'
+        align: 'center',
+        type: 'string'
     }
 ];
+
+// exclude some standard MUI filter operators, since they don't work properly
+const excludeFilterOperators = (colDef: GridColDef) => {
+    if (colDef.type === 'string') {
+        colDef.filterOperators =
+            GRID_STRING_COL_DEF.filterOperators?.filter((operator) => operator.value !== 'startsWith' && operator.value !== 'endsWith') ?? [];
+    }
+    return colDef;
+};
+columns = columns.map(excludeFilterOperators);
 
 export default function DataTableInventory(props: IDataTableInventory) {
     const { items, search, setSearch, isShowSearchBar, isShowSwitchAndLegend, isSearching, isIncludeDroppingInformation, selectionModel, setSelectionModel } =
@@ -128,24 +198,19 @@ export default function DataTableInventory(props: IDataTableInventory) {
         setStateDeactivated(event.target.checked);
     }
 
-    function convertToDateString(date: string) {
-        return new Date(date).toLocaleDateString('en-CA', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-    }
-
-    function convertToDateTimeString(date: string) {
-        return new Date(date).toLocaleDateString('en-CA', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
+    function getIssuedToString(item: IDetailInventoryItem) {
+        if (!item.issuedTo || item.status !== CommonConstants.VERTEILT) {
+            return item.issuedTo || '';
+        } else {
+            return item.issuedTo
+                .split('\n')
+                .filter((line) => line) // remove empty lines
+                .map((line) => {
+                    const parts = line.split('~');
+                    return parts[parts.length - 1]; // extract the last element of every line
+                })
+                .join(', ');
+        }
     }
 
     useEffect(() => {
@@ -223,22 +288,26 @@ export default function DataTableInventory(props: IDataTableInventory) {
                             itemName: item.itemName,
                             status: item.status,
                             location: item.location?.locationName,
+                            room: item.room,
                             pieces: item.pieces,
-                            piecesStoredIssuedDropped: `${item.piecesStored} / ${item.piecesIssued} / ${item.piecesDropped}`,
+                            piecesStored: item.piecesStored,
+                            piecesIssued: item.piecesIssued,
+                            piecesDropped: item.piecesDropped,
                             oldItemNumber: item.oldItemNumber,
                             serialNumber: item.serialNumber,
-                            deliveryDate: item.deliveryDate ? convertToDateString(item.deliveryDate) : null,
-                            issueDate: item.issueDate ? convertToDateString(item.issueDate) : null,
-                            issuedTo: item.issuedTo,
-                            droppingDate: item.droppingDate ? convertToDateString(item.droppingDate) : null,
+                            deliveryDate: item.deliveryDate ? new Date(item.deliveryDate) : null,
+                            warrantyEndDate: item.warrantyEndDate ? new Date(item.warrantyEndDate) : null,
+                            issueDate: item.issueDate ? new Date(item.issueDate) : null,
+                            issuedTo: getIssuedToString(item),
+                            droppingDate: item.droppingDate ? new Date(item.droppingDate) : null, // no need to manipulate the string for distributed items, because distributed items manage dropped items inside droppingReason parameter
                             supplier: item.supplier?.supplierName,
                             department: item.department?.departmentName,
-                            creationDate: item.creationDate ? convertToDateTimeString(item.creationDate) : null,
-                            lastChangedDate: item.lastChangedDate ? convertToDateTimeString(item.lastChangedDate) : null,
+                            creationDate: item.creationDate ? new Date(item.creationDate) : null,
+                            lastChangedDate: item.lastChangedDate ? new Date(item.lastChangedDate) : null,
                             active: item.active,
                             task: item.droppingQueueRequester !== userId,
                             droppingQueue: item.droppingQueue,
-                            droppingQueueDate: item.droppingQueueDate ? convertToDateString(item.droppingQueueDate) : null,
+                            droppingQueueDate: item.droppingQueueDate ? new Date(item.droppingQueueDate) : null,
                             droppingQueueReason: item.droppingQueueReason,
                             droppingQueuePieces: item.droppingQueuePieces,
                             separationLine: '||'
@@ -278,7 +347,7 @@ export default function DataTableInventory(props: IDataTableInventory) {
                     color={themeMode === 'dark' ? lightGrey : darkGrey}
                     marginTop="2em"
                 >
-                    * La / Ag / As ... Lagernd / Ausgegeben / Ausgeschieden (in Stück)
+                    Stk ges. / lag. / agg. / ags. ... Stück gesamt / lagernd / ausgegeben / ausgeschieden
                 </Typography>
             )}
             {isIncludeDroppingInformation && (

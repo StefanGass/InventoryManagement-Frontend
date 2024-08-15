@@ -1,9 +1,9 @@
 {
     "name": "inventory-management-frontend",
     "author": "Stefan Gass; until release 22.06.1: Stefan Gass, Isabella Zaby",
-    "description": "In cooperation with the University of Applied Sciences Burgenland, department Information Technology",
+    "description": "Tool for managing inventory. In cooperation with the University of Applied Sciences Burgenland, department Information Technology",
     "license": "MIT",
-    "version": "23.10.0",
+    "version": "23.10.1",
     "private": true,
     "scripts": {
         "dev": "next dev -p 3004",
@@ -25,9 +25,9 @@
         "date-fns": "^2.30.0",
         "jsqr": "^1.4.0",
         "next": "^14.0.3",
+        "qrcode.react": "^3.1.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "qrcode.react": "^3.1.0",
         "recharts": "2.9.3",
         "signature_pad": "^4.1.6"
     },

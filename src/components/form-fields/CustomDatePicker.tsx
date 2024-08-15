@@ -23,7 +23,7 @@ interface ICustomDatePickerProps {
 }
 
 export default function CustomDatePicker(props: ICustomDatePickerProps) {
-    const { label, setValue, isError = false, value, isDisplayWeekNumber = false, isDisabled, isRequired, isDisableFuture = false, minDate, maxDate } = props;
+    const { label, setValue, isError = false, value, isDisplayWeekNumber = false, isDisabled, isRequired, isDisableFuture = false, minDate, maxDate} = props;
     const { themeMode } = useContext(UserContext);
     const [date, setDate] = useState<Date | null>(value ? new Date(value) : null);
 
@@ -63,8 +63,8 @@ export default function CustomDatePicker(props: ICustomDatePickerProps) {
                     displayWeekNumber={isDisplayWeekNumber}
                     disabled={isDisabled}
                     disableFuture={isDisableFuture}
-                    minDate={minDate ? new Date(minDate) : undefined}
-                    maxDate={maxDate ? new Date(maxDate) : undefined}
+                    minDate={minDate ? (new Date(minDate)) : undefined}
+                    maxDate={maxDate ? (new Date(maxDate)) : undefined}
                     slotProps={{
                         textField: {
                             error: isError,

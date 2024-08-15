@@ -33,8 +33,7 @@ export default function CustomSelectStatus(props: ICustomSelectStatusProps) {
                     color="primary"
                     shrink={true}
                     error={isError}
-                    sx={{
-                        // shrink does not provide a background - probably a MUI bug
+                    sx={{ // shrink does not provide a background - probably a MUI bug
                         background: themeMode === 'dark' ? darkTheme.palette.background.default : defaultTheme.palette.background.default,
                         marginLeft: '-5px',
                         paddingX: '5px'
@@ -51,12 +50,7 @@ export default function CustomSelectStatus(props: ICustomSelectStatusProps) {
                     defaultValue=""
                 >
                     {menuItemList.map((item) => (
-                        <MenuItem
-                            key={item}
-                            value={item}
-                        >
-                            {item}
-                        </MenuItem>
+                        <MenuItem key={item} value={item}>{item}</MenuItem>
                     ))}
                 </Select>
                 {value && (

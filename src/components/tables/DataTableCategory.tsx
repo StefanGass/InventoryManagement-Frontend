@@ -7,8 +7,8 @@ interface IDataTableCategoryProps {
 }
 
 const columns: GridColDef[] = [
-    { field: 'categoryName', headerName: 'Kategorie', width: 300 },
-    { field: 'prefix', headerName: 'Präfix', width: 200 }
+    { field: 'categoryName', headerName: 'Kategorie', width: 300, type: 'string' },
+    { field: 'prefix', headerName: 'Präfix', width: 200, type: 'string' }
 ];
 
 export default function DataTableCategory(props: IDataTableCategoryProps) {

@@ -10,6 +10,7 @@ import { formatISO } from 'date-fns';
 import CustomAutocomplete from 'components/form-fields/CustomAutocomplete';
 import { AUSSCHEIDEN } from 'utils/droppingActivationUtil';
 import { UserContext } from '../../../../pages/_app';
+import CustomNumberInput from 'components/form-fields/CustomNumberInput';
 
 interface IIssueReturnDropFormProps {
     inventoryForm: IDetailInventoryItem;
@@ -26,7 +27,7 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
     const [isStartReturningProcess, setIsStartReturningProcess] = useState(false);
     const [isStartDroppingProcess, setIsStartDroppingProcess] = useState(false);
 
-    const [pieces, setPieces] = useState('');
+    const [pieces, setPieces] = useState(1);
     const [isPiecesError, setIsPiecesError] = useState(false);
     const [text, setText] = useState('');
     const [isTextError, setIsTextError] = useState(false);
@@ -41,7 +42,7 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
     const [returningPiecesMax, setReturningPiecesMax] = useState(1);
 
     const resetFields = () => {
-        setPieces('');
+        setPieces(1);
         setText('');
         setDate('');
         setReturningValue(null);
@@ -69,8 +70,8 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
     }, [pieces, text, date]);
 
     useEffect(() => {
-        !returningValue && setPieces('');
-        returningValue && setPieces(returningValue.returningPieces.toString());
+        !returningValue && setPieces(1);
+        returningValue && setPieces(returningValue.returningPieces);
         returningValue && setReturningPiecesMax(returningValue.returningPieces);
         setIsPiecesError(false);
         setIsReturningValueError(false);
@@ -106,7 +107,7 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
                 updatedIssuedToString += entry + '\n';
             }
         });
-        return `${formatISO(new Date(date), { representation: 'date' })} ~ ${Number(pieces) + alreadyIssuedPieces} Stk. ~ ${text}\n` + updatedIssuedToString;
+        return `${formatISO(new Date(date), { representation: 'date' })} ~ ${pieces + alreadyIssuedPieces} Stk. ~ ${text}\n` + updatedIssuedToString;
     }
 
     // reduce or remove the number of issued items inside the existing multi-piece item string, when items are returned
@@ -118,8 +119,8 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
                 // manipulate only the chosen line, append every other
                 const [tmpDate, tmpPiecesStr, tmpIssuedTo] = entry.split(' ~ ');
                 let tmpPieces = Number(tmpPiecesStr.split(' ')[0]);
-                if (returningValue && returningValue.returningPieces !== Number(pieces)) {
-                    tmpPieces -= Number(pieces);
+                if (returningValue && returningValue.returningPieces !== pieces) {
+                    tmpPieces -= pieces;
                     updatedIssuedToString += `${tmpDate} ~ ${tmpPieces} Stk. ~ ${tmpIssuedTo}\n`;
                 }
             } else {
@@ -135,7 +136,7 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
             setIsStartIssuingProcess(false);
             resetFields();
         } else {
-            setPieces(String(inventoryForm.piecesStored));
+            setPieces(inventoryForm.piecesStored);
             setDate(String(new Date()));
             setIsStartIssuingProcess(true);
         }
@@ -160,7 +161,7 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
             setIsStartDroppingProcess(false);
             resetFields();
         } else {
-            setPieces(String(inventoryForm.piecesStored));
+            setPieces(inventoryForm.piecesStored);
             setDate(String(new Date()));
             setIsStartDroppingProcess(true);
         }
@@ -177,27 +178,27 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
                     issueDate: null
                 } as IDetailInventoryItem);
             } else {
-                if (!returningValue || !pieces || pieces === '') {
+                if (!returningValue || !pieces) {
                     if (!returningValue) {
                         setIsReturningValueError(true);
-                    } else if (!pieces || pieces === '') {
+                    } else if (!pieces) {
                         setIsPiecesError(true);
                     }
                 } else {
                     const newIssuedToString = getNewIssuedToStringWhenReturningItems(returningValue.id);
                     onFormSent({
                         ...inventoryForm,
-                        piecesIssued: inventoryForm.piecesIssued - Number(pieces),
-                        piecesStored: inventoryForm.piecesStored + Number(pieces),
+                        piecesIssued: inventoryForm.piecesIssued - pieces,
+                        piecesStored: inventoryForm.piecesStored + pieces,
                         issuedTo: newIssuedToString,
-                        issueDate: inventoryForm.piecesIssued - Number(pieces) !== 0 ? inventoryForm.issueDate : null
+                        issueDate: inventoryForm.piecesIssued - pieces !== 0 ? inventoryForm.issueDate : null
                     } as IDetailInventoryItem);
                 }
             }
         } else {
             let formattedText = text.trim();
-            if (!pieces || pieces === '' || !text || text === '' || formattedText.length === 0 || text.includes('~') || !date || date === '') {
-                if (!pieces || pieces === '') {
+            if (!pieces || !text || text === '' || formattedText.length === 0 || text.includes('~') || !date || date === '') {
+                if (!pieces) {
                     setIsPiecesError(true);
                 }
                 if (!text || text === '') {
@@ -227,8 +228,8 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
                     }
                     onFormSent({
                         ...inventoryForm,
-                        piecesIssued: Number(pieces) + inventoryForm.piecesIssued,
-                        piecesStored: inventoryForm.piecesStored - Number(pieces),
+                        piecesIssued: pieces + inventoryForm.piecesIssued,
+                        piecesStored: inventoryForm.piecesStored - pieces,
                         issuedTo: formattedText,
                         issueDate: isoFormatDateTime
                     } as IDetailInventoryItem);
@@ -236,7 +237,7 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
                     onFormSent({
                         ...inventoryForm,
                         droppingQueue: AUSSCHEIDEN,
-                        droppingQueuePieces: Number(pieces),
+                        droppingQueuePieces: pieces,
                         droppingQueueReason: formattedText,
                         droppingQueueDate: isoFormatDateTime,
                         droppingQueueRequester: userId
@@ -324,24 +325,16 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
             >
                 {isStartIssuingProcess && (
                     <>
-                        <CustomTextField
+                        <CustomNumberInput
                             label="Stückzahl ausgegeben"
                             value={pieces}
-                            setValue={(val) => {
-                                if (val === '') {
-                                    setPieces('');
-                                } else if (Number(val) < 1) {
-                                    setPieces('1');
-                                } else if (Number(val) > inventoryForm.piecesStored) {
-                                    setPieces(String(inventoryForm.piecesStored));
-                                } else {
-                                    setPieces(val);
-                                }
-                            }}
-                            isError={isPiecesError}
-                            type="number"
-                            isRequired={true}
-                            isDisabled={isSinglePieceItem}
+                            onChange={(val) => setPieces(val)}
+                            min={1}
+                            max={inventoryForm.piecesStored}
+                            textAlign="start"
+                            error={isPiecesError}
+                            required={true}
+                            disabled={isSinglePieceItem}
                         />
                         <CustomTextField
                             label="Ausgegeben an"
@@ -399,47 +392,31 @@ export default function IssueReturnDropForm(props: IIssueReturnDropFormProps) {
                                 isRequired={true}
                             />
                         )}
-                        <CustomTextField
+                        <CustomNumberInput
                             label="Stückzahl zurückgenommen"
-                            value={isSinglePieceItem ? '1' : pieces}
-                            setValue={(val) => {
-                                if (val === '') {
-                                    setPieces('');
-                                } else if (Number(val) < 1) {
-                                    setPieces('1');
-                                } else if (Number(val) > returningPiecesMax) {
-                                    setPieces(String(returningPiecesMax));
-                                } else {
-                                    setPieces(val);
-                                }
-                            }}
-                            isError={isPiecesError}
-                            type="number"
-                            isRequired={true}
-                            isDisabled={isSinglePieceItem || !returningValue}
+                            value={isSinglePieceItem ? 1 : pieces}
+                            onChange={(val) => setPieces(val)}
+                            min={1}
+                            max={returningPiecesMax}
+                            textAlign="start"
+                            error={isPiecesError}
+                            required={true}
+                            disabled={isSinglePieceItem || !returningValue}
                         />
                     </>
                 )}
                 {isStartDroppingProcess && (
                     <>
-                        <CustomTextField
+                        <CustomNumberInput
                             label="Stückzahl ausgeschieden"
                             value={pieces}
-                            setValue={(val) => {
-                                if (val === '') {
-                                    setPieces('');
-                                } else if (Number(val) < 1) {
-                                    setPieces('1');
-                                } else if (Number(val) > inventoryForm.piecesStored) {
-                                    setPieces(String(inventoryForm.piecesStored));
-                                } else {
-                                    setPieces(val);
-                                }
-                            }}
-                            isError={isPiecesError}
-                            type="number"
-                            isRequired={true}
-                            isDisabled={isSinglePieceItem || !!inventoryForm.droppingQueue}
+                            onChange={(val) => setPieces(val)}
+                            min={1}
+                            max={inventoryForm.piecesStored}
+                            textAlign="start"
+                            error={isPiecesError}
+                            required={true}
+                            disabled={isSinglePieceItem || !!inventoryForm.droppingQueue}
                         />
                         <CustomTextField
                             label="Ausscheidegrund"

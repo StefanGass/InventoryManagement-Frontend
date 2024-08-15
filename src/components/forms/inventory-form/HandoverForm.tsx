@@ -1,10 +1,10 @@
-import { MouseEvent, useContext, useRef, useState } from 'react';
-import { Box, Container, Grid, Tooltip, Typography } from '@mui/material';
+import { MouseEvent, useContext, useEffect, useRef, useState } from 'react';
+import { Box, Grid, IconButton, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import CustomButton from 'components/form-fields/CustomButton';
 import { UserContext } from '../../../../pages/_app';
-import { Cancel, CheckCircle, Handshake } from '@mui/icons-material';
+import { Cancel, CheckCircle, Handshake, RestartAlt } from '@mui/icons-material';
 import SignaturePad from 'signature_pad';
-import { mainBlack } from 'styles/theme';
+import defaultTheme, { darkGrey, errorRed, mainGrey } from 'styles/theme';
 import { IInventoryItem } from 'components/interfaces';
 import CustomAlert from 'components/form-fields/CustomAlert';
 
@@ -21,18 +21,24 @@ export default function HandoverForm(props: IHandoverFormProps) {
     const [isShowSignaturePad, setIsShowSignaturePad] = useState(false);
     const [isInputEmptyAlert, setIsInputEmptyAlert] = useState(false);
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const signaturePadCanvasRef = useRef<HTMLCanvasElement>(null);
+    const resetButtonRef = useRef<HTMLButtonElement>(null);
     const [signatureData, setSignatureData] = useState('');
+
+    const matchesPhone = useMediaQuery(defaultTheme.breakpoints.down('xs'));
+    const isLandscape = useMediaQuery('(orientation: landscape)');
 
     async function onStartButtonClick(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
         setIsInputEmptyAlert(false);
         if (isShowSignaturePad) {
             setIsShowSignaturePad(false);
+            setIsInputEmptyAlert(false);
+            setSignatureData('');
         } else {
             await setIsShowSignaturePad(true); // the await MUST not be removed
-            if (canvasRef != null && canvasRef.current != null) {
-                const canvas = canvasRef.current;
+            if (signaturePadCanvasRef != null && signaturePadCanvasRef.current != null && resetButtonRef != null && resetButtonRef.current != null) {
+                const canvas = signaturePadCanvasRef.current;
                 const signaturePad = new SignaturePad(canvas, {
                     dotSize: 2,
                     minWidth: 1,
@@ -48,6 +54,10 @@ export default function HandoverForm(props: IHandoverFormProps) {
                     },
                     { once: false }
                 );
+                resetButtonRef.current.addEventListener('click', () => {
+                    setSignatureData('');
+                    signaturePad.clear();
+                });
             }
         }
     }
@@ -81,8 +91,14 @@ export default function HandoverForm(props: IHandoverFormProps) {
         setIsLoading(false);
     }
 
+    useEffect(() => {
+        setIsShowSignaturePad(false);
+        setIsInputEmptyAlert(false);
+        setSignatureData('');
+    }, [matchesPhone, isLandscape]);
+
     return (
-        <Container maxWidth="md">
+        <>
             <Grid
                 container
                 direction="row"
@@ -118,22 +134,51 @@ export default function HandoverForm(props: IHandoverFormProps) {
                     </Typography>
                     <Grid
                         container
-                        direction="row"
+                        direction="column"
                         justifyContent="center"
                         alignItems="center"
+                        maxWidth="md"
                     >
+                        <Grid
+                            container
+                            justifyContent="space-between"
+                            direction="row"
+                            alignItems="end"
+                            width={matchesPhone && !isLandscape ? 300 : 450}
+                            marginBottom="-15px"
+                            marginTop="5px"
+                        >
+                            <Typography
+                                variant="caption"
+                                color={darkGrey}
+                            >
+                                Hier unterschreiben: *
+                            </Typography>
+                            <IconButton
+                                ref={resetButtonRef}
+                                sx={{ width: '20px', height: '20px', marginBottom: '2px', marginRight: '-7px' }}
+                            >
+                                <RestartAlt fontSize="small" />
+                            </IconButton>
+                        </Grid>
                         <Grid
                             sx={{
                                 marginTop: '1em',
                                 marginBottom: '1em',
-                                border: `1px solid ${mainBlack}`,
+                                border: `1px solid ${isInputEmptyAlert ? errorRed : mainGrey}`,
                                 borderRadius: '5px',
-                                background: '#ffffff'
+                                background: '#ffffff',
+                                '&:hover': {
+                                    borderColor: isInputEmptyAlert ? errorRed : mainGrey,
+                                    cursor: 'pointer'
+                                }
                             }}
                         >
                             <canvas
                                 id="canvas"
-                                ref={canvasRef}
+                                ref={signaturePadCanvasRef}
+                                width={matchesPhone && !isLandscape ? 300 : 450}
+                                height={matchesPhone && !isLandscape ? 150 : 200}
                                 style={{ marginTop: '2px', marginLeft: '2px', marginRight: '2px', marginBottom: '-5px' }}
                             />
                         </Grid>
@@ -158,6 +203,6 @@ export default function HandoverForm(props: IHandoverFormProps) {
                     </Grid>
                 </>
             )}
-        </Container>
+        </>
     );
 }

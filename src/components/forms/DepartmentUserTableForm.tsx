@@ -31,6 +31,9 @@ export default function DepartmentUserTableForm(props: IDepartmentUserTable) {
 
     useEffect(() => {
         setIsDeleteMemberInputEmptyAlert(false);
+        if (selectionModelDelete.length !== 0) {
+            setIsDeleteMemberSuccessfulAlert(false);
+        }
     }, [selectionModelDelete]);
 
     function onDeleteMemberButtonClick(e: MouseEvent<HTMLButtonElement>) {

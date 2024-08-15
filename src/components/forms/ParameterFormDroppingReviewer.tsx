@@ -57,6 +57,10 @@ export default function ParameterFormDroppingReviewer() {
     }
 
     useEffect(() => {
+        setAddMessage(null);
+    }, [selectedUser]);
+
+    useEffect(() => {
         setIsLoading(true);
         userManagementService
             .getAllUsers(userId, authHeaders)

@@ -1,16 +1,25 @@
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
 import { IChange } from 'components/interfaces';
 import { Box, Container, Typography } from '@mui/material';
+import { format } from 'date-fns';
 
 interface IDataTableChangeProps {
     changeList: IChange[];
 }
 
 const columns: GridColDef[] = [
-    { field: 'change', headerName: 'Änderung', width: 250 },
-    { field: 'user', headerName: 'Geändert durch', width: 200 },
-    { field: 'date', headerName: 'Änderungsdatum', width: 200 },
-    { field: 'changeHistory', headerName: 'Änderungsverlauf', width: 4000 }
+    { field: 'change', headerName: 'Änderung', width: 250, type: 'string' },
+    { field: 'user', headerName: 'Geändert durch', width: 200, type: 'string' },
+    {
+        field: 'date',
+        headerName: 'Änderungsdatum',
+        width: 200,
+        type: 'dateTime',
+        renderCell: (params: GridRenderCellParams<Date>) => {
+            return params.value ? format(params.value, 'dd.MM.yyyy, HH:mm') : '';
+        }
+    },
+    { field: 'changeHistory', headerName: 'Änderungsverlauf', width: 4000, type: 'string' }
 ];
 
 export default function DataTableChange(props: IDataTableChangeProps) {
@@ -32,16 +41,7 @@ export default function DataTableChange(props: IDataTableChangeProps) {
                         id: change.id,
                         change: change.changeStatus,
                         user: change.user,
-                        date:
-                            `${new Date(change.changeDate).toLocaleDateString('en-CA', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                                hour12: false
-                            })}` ?? null,
+                        date: change.changeDate ? new Date(change.changeDate) : null,
                         changeHistory: change.changeHistory
                     }))}
                     autoHeight={changeList.length < 15}

@@ -7,11 +7,14 @@ export const mainOrangeRed = '#D85A3B';
 export const mainOrange = '#EBA93B';
 export const mainGold = '#F7CE46';
 export const mainYellow = '#FAE058';
+export const mainGrey = '#837A79';
 export const mainBlack = '#212121';
 export const mainWhite = '#FAFAFA';
 export const errorRed = '#DC143C';
+export const superLightGrey = '#E0E0E0';
 export const lightGrey = '#B5AFAF';
 export const darkGrey = '#635C5B';
+export const superDarkGrey = '#515151';
 export const whiteBackground = '#F9FBFF';
 export const darkBackground = '#212121';
 
@@ -57,6 +60,45 @@ const defaultTheme = createTheme(
             button: {
                 textTransform: 'none'
             }
+        },
+        breakpoints: {
+            values: {
+                xs: 500,
+                sm: 600,
+                md: 900,
+                lg: 1200,
+                xl: 1536
+            }
+        },
+        components: {
+            // @ts-ignore
+            MuiDataGrid: {
+                styleOverrides: {
+                    root: {
+                        '& .MuiDataGrid-columnHeader': {
+                            backgroundColor: mainWhite,
+                            borderTop: `1px solid ${superLightGrey}`,
+                            borderRight: `1px solid ${superLightGrey}`,
+                            borderBottom: `2px solid ${superLightGrey}`
+                        },
+                        '& .MuiDataGrid-cell': {
+                            borderRight: `1px solid ${superLightGrey}`
+                        },
+                        '& .MuiDataGrid-row:nth-of-type(2n):not(:hover)': {
+                            backgroundColor: mainWhite
+                        },
+                        '& .MuiDataGrid-columnHeader:last-of-type': {
+                            borderRight: 'none'
+                        },
+                        '& .MuiDataGrid-row .MuiDataGrid-cell:last-of-type': {
+                            borderRight: 'none'
+                        },
+                        '& .MuiDataGrid-columnSeparator': {
+                            display: 'none'
+                        }
+                    }
+                }
+            }
         }
     },
     deDEDataGrid,
@@ -83,6 +125,36 @@ export const darkTheme = createTheme(
             },
             background: {
                 paper: darkBackground
+            }
+        },
+        components: {
+            // @ts-ignore
+            MuiDataGrid: {
+                styleOverrides: {
+                    root: {
+                        '& .MuiDataGrid-columnHeader': {
+                            backgroundColor: mainBlack,
+                            borderTop: `1px solid ${superDarkGrey}`,
+                            borderRight: `1px solid ${superDarkGrey}`,
+                            borderBottom: `2px solid ${superDarkGrey}`
+                        },
+                        '& .MuiDataGrid-cell': {
+                            borderRight: `1px solid ${superDarkGrey}`
+                        },
+                        '& .MuiDataGrid-row:nth-of-type(2n):not(:hover)': {
+                            backgroundColor: mainBlack,
+                        },
+                        '& .MuiDataGrid-columnHeader:last-of-type': {
+                            borderRight: 'none'
+                        },
+                        '& .MuiDataGrid-row .MuiDataGrid-cell:last-of-type': {
+                            borderRight: 'none'
+                        },
+                        '& .MuiDataGrid-columnSeparator': {
+                            display: 'none'
+                        }
+                    }
+                }
             }
         }
     },

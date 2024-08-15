@@ -7,10 +7,10 @@ interface IDataTablePrinterProps {
 }
 
 const columns: GridColDef[] = [
-    { field: 'printerName', headerName: 'Drucker', width: 200 },
-    { field: 'printerIp', headerName: 'IP-Adresse', width: 170 },
-    { field: 'printerModel', headerName: 'Modell', width: 150 },
-    { field: 'labelFormat', headerName: 'Label-Format', width: 150 }
+    { field: 'printerName', headerName: 'Drucker', width: 200, type: 'string' },
+    { field: 'printerIp', headerName: 'IP-Adresse', width: 170, type: 'string' },
+    { field: 'printerModel', headerName: 'Modell', width: 150, type: 'string' },
+    { field: 'labelFormat', headerName: 'Label-Format', width: 150, type: 'string' }
 ];
 
 export default function DataTableCategory(props: IDataTablePrinterProps) {

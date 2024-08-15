@@ -71,7 +71,9 @@ export interface IInventoryItem {
     itemName: string;
     oldItemNumber?: string;
     serialNumber: string;
+    warrantyEndDate?: string | null;
     location?: ILocation;
+    room: string;
     pieces?: number;
     piecesStored: number;
     piecesIssued: number;

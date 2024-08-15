@@ -2,7 +2,6 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { Box, Button, Container, Grid, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import { Camera, CameraAlt, Delete, NoPhotography, PhotoCamera, UploadFile } from '@mui/icons-material';
 import { IPicture, IPictureUpload } from 'components/interfaces';
-import lightTheme from 'styles/theme';
 import { format } from 'date-fns';
 import styles from 'styles/ImageUpload.module.scss';
 import CustomButton from 'components/form-fields/CustomButton';
@@ -23,7 +22,7 @@ export default function ImageUpload(props: IImageUploadProps) {
     const [isShowPlaceholderIcon, setIsShowPlaceholderIcon] = useState(true);
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraSettings, setCameraSettings] = useState<MediaTrackSettings | null>(null);
-    const matches = useMediaQuery(lightTheme.breakpoints.down('md'));
+    const isLandscape = useMediaQuery('(orientation: landscape)');
 
     const isFirstRender = useIsFirstRender();
 
@@ -76,8 +75,8 @@ export default function ImageUpload(props: IImageUploadProps) {
                         .getUserMedia({
                             video: {
                                 facingMode: 'environment',
-                                width: { ideal: matches ? 1080 : 2160 },
-                                height: { ideal: matches ? 2160 : 1080 }
+                                width: { ideal: isLandscape ? 2160 : 1080 },
+                                height: { ideal: isLandscape ? 1080 : 2160 }
                             }
                         })
                         .then(function (stream) {
@@ -132,10 +131,10 @@ export default function ImageUpload(props: IImageUploadProps) {
     }, [pictureList]);
 
     useEffect(() => {
-        if (!isFirstRender) {
+        if (!isFirstRender && isCameraActive) {
             startCamera(false);
         }
-    }, [matches]);
+    }, [isLandscape]);
 
     return (
         <Container maxWidth="lg">

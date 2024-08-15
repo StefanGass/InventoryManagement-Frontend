@@ -38,10 +38,10 @@ export default function Footer() {
                     justifyContent="center"
                     margin="1.2em"
                 >
-                    <Typography align="center">© Your Company</Typography>
+                    <Typography align="center">© YOUR COMPANY</Typography>
                     <Typography sx={{ marginLeft: '8px', marginRight: '8px' }}>|</Typography>
                     <Link
-                        href="https://link.to-your.domain"
+                        href="https://YOUR.DOMAIN.NET/"
                         target="_blank"
                         rel="noopener noreferrer"
                         color={mainWhite}
@@ -57,7 +57,7 @@ export default function Footer() {
                     </Link>
                     <Typography sx={{ marginLeft: '8px', marginRight: '8px' }}>|</Typography>
                     <Link
-                        href="https://link.to-your.domain"
+                        href="https://YOUR.DOMAIN.NET/"
                         target="_blank"
                         rel="noopener noreferrer"
                         color={mainWhite}
@@ -73,7 +73,7 @@ export default function Footer() {
                     </Link>
                     <Typography sx={{ marginLeft: '8px', marginRight: '8px' }}>|</Typography>
                     <Link
-                        href="https://link.to-your.domain"
+                        href="https://YOUR.DOMAIN.NET/"
                         target="_blank"
                         rel="noopener noreferrer"
                         color={mainWhite}

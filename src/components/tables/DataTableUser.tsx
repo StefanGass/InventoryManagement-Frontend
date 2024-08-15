@@ -8,13 +8,7 @@ interface IDataTableUserProps {
     setSelectionModel: (val: GridRowId[]) => void;
 }
 
-const columns: GridColDef[] = [
-    {
-        field: 'name',
-        headerName: 'Name',
-        width: 300
-    }
-];
+const columns: GridColDef[] = [{ field: 'name', headerName: 'Name', width: 300, type: 'string' }];
 
 export default function DataTableUser(props: IDataTableUserProps) {
     const { userList, selectionModel, setSelectionModel } = props;

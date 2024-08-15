@@ -241,7 +241,7 @@ export default function Index() {
                         align="center"
                         gutterBottom
                     >
-                        Stück gesamt / lagernd / ausgegeben / ausgeschieden
+                        Auswertung nach Typ
                         <br />
                     </Typography>
                     {typeChartItems.length > 0 ? (
@@ -262,7 +262,7 @@ export default function Index() {
                                 align="center"
                                 gutterBottom
                             >
-                                Stück pro Abteilung
+                                Stück gesamt pro Abteilung
                             </Typography>
                             <CustomPieChart itemList={departmentChartItems} />
                         </Grid>

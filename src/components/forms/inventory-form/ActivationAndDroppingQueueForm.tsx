@@ -62,8 +62,7 @@ export default function ActivationAndDroppingQueueForm(props: IActivationAndDrop
                 if (inventoryItem.pieces === 1) {
                     tmpDroppingReason = inventoryItem.droppingQueueReason;
                 } else {
-                    tmpDroppingReason =
-                        `${isoFormatDate} ~ ${inventoryItem.droppingQueuePieces} Stk. ~ ${inventoryItem.droppingQueueReason}\n` + inventoryItem.droppingReason;
+                    tmpDroppingReason = `${isoFormatDate} ~ ${inventoryItem.droppingQueuePieces} Stk. ~ ${inventoryItem.droppingQueueReason}\n` + inventoryItem.droppingReason;
                 }
                 const form: IDetailInventoryItem = {
                     ...inventoryItem,

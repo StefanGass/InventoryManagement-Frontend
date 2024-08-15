@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Container, Grid, Typography, useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/router';
-import { IDepartment, IDetailInventoryItem, ILocation, IPicture, IPrinter, ISupplier, IType } from 'components/interfaces';
+import { ICategory, IDepartment, IDetailInventoryItem, ILocation, IPicture, IPrinter, ISupplier, IType } from 'components/interfaces';
 import LoadingSpinner from 'components/layout/LoadingSpinner';
 import PDFDisplay from 'components/image-upload/PDFDisplay';
 import InventoryForm from 'components/forms/inventory-form/InventoryForm';
@@ -29,13 +29,16 @@ export default function Details() {
     const matchesTablet = useMediaQuery(defaultTheme.breakpoints.down('md'));
     const matchesPhone = useMediaQuery(defaultTheme.breakpoints.down('sm'));
 
-    const { userId, firstName, lastName, isAdmin, isSuperAdmin, departmentId, departmentName } = useContext(UserContext);
+    const { userId, firstName, lastName, isAdmin, isSuperAdmin, isAdminModeActivated, departmentId, departmentName } = useContext(UserContext);
 
     const [inventoryItem, setInventoryItem] = useState<IDetailInventoryItem | null>(null);
     const [imageList, setImageList] = useState<IPicture[] | null>(null);
     const [pdfList, setPdfList] = useState<IPicture[] | null>(null);
+    const [category, setCategory] = useState<ICategory[] | JSON | null>(null);
     const [type, setType] = useState<IType[] | JSON | null>(null);
+    const [itemName, setItemName] = useState<string[] | JSON | null>(null);
     const [location, setLocation] = useState<ILocation[] | JSON | null>(null);
+    const [room, setRoom] = useState<string[] | JSON | null>(null);
     const [supplier, setSupplier] = useState<ISupplier[] | JSON | null>(null);
     const [printer, setPrinter] = useState<IPrinter[] | JSON | null>(null);
     const [department, setDepartment] = useState<IDepartment[] | JSON | null>(null);
@@ -44,11 +47,11 @@ export default function Details() {
     const [isDisabled, setIsDisabled] = useState(true);
     const [isUpdated, setIsUpdated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [serverError, setServerError] = useState('');
+    const [isServerError, setIsServerError] = useState('');
 
     function handleError(msg: string) {
         setFormError(msg);
-        fetchInventoryData().catch((e) => setServerError(e.message));
+        fetchInventoryData().catch((e) => setIsServerError(e.message));
     }
 
     async function fetchData(typeToFetch: string, setMethod: (res: JSON) => void) {
@@ -61,7 +64,7 @@ export default function Details() {
                     response.json().then((res) => setMethod(res));
                 }
             })
-            .catch((e) => setServerError(e.message));
+            .catch((e) => setIsServerError(e.message));
     }
 
     function convertToDateString(date: string) {
@@ -89,21 +92,24 @@ export default function Details() {
                     });
                 }
             })
-            .catch((e) => setServerError(e.message));
+            .catch((e) => setIsServerError(e.message));
     }
 
     useEffect(() => {
         if (id) {
-            fetchInventoryData().catch((e) => setServerError(e.message));
-            fetchData('type', setType).catch((e) => setServerError(e.message));
-            fetchData('location', setLocation).catch((e) => setServerError(e.message));
-            fetchData('supplier', setSupplier).catch((e) => setServerError(e.message));
-            fetchData('printer/' + userId, setPrinter).catch((e) => setServerError(e.message));
+            fetchInventoryData().catch((e) => setIsServerError(e.message));
+            fetchData('category', setCategory).catch((e) => setIsServerError(e.message));
+            fetchData('type', setType).catch((e) => setIsServerError(e.message));
+            fetchData('location', setLocation).catch((e) => setIsServerError(e.message));
+            fetchData('supplier', setSupplier).catch((e) => setIsServerError(e.message));
+            fetchData('printer/' + userId, setPrinter).catch((e) => setIsServerError(e.message));
             if (isAdmin || isSuperAdmin) {
-                fetchData('department', setDepartment).catch((e) => setServerError(e.message));
+                fetchData('department', setDepartment).catch((e) => setIsServerError(e.message));
             } else {
                 setDepartment([{ id: departmentId, departmentName }]);
             }
+            fetchData(isAdminModeActivated ? 'itemname' : 'itemname/' + departmentId, setItemName).catch((e) => setIsServerError(e.message));
+            fetchData(isAdminModeActivated ? 'room' : 'room/' + departmentId, setRoom).catch((e) => setIsServerError(e.message));
         }
     }, [id, isUpdated]);
 
@@ -153,7 +159,7 @@ export default function Details() {
         >
             {!id || !inventoryItem || isLoading ? (
                 <LoadingSpinner />
-            ) : serverError ? (
+            ) : isServerError ? (
                 <ErrorInformation />
             ) : formError || isUpdated || activationMessage ? (
                 <>
@@ -415,9 +421,14 @@ export default function Details() {
                         </Grid>
                     )}
                     <InventoryForm
+                        category={category as ICategory[]}
                         type={type as IType[]}
+                        itemName={itemName as string[]}
+                        setItemName={setItemName}
                         supplier={supplier as ISupplier[]}
                         location={location as ILocation[]}
+                        room={room as string[]}
+                        setRoom={setRoom}
                         printer={printer as IPrinter[]}
                         department={department as IDepartment[]}
                         preFilledValues={inventoryItem}
@@ -434,7 +445,7 @@ export default function Details() {
                                         inventoryItem={inventoryItem}
                                         setIsUpdated={setIsUpdated}
                                         setIsLoading={setIsLoading}
-                                        setServerError={setServerError}
+                                        setServerError={setIsServerError}
                                     />
                                 </>
                             )}

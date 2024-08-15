@@ -72,6 +72,7 @@ export const defaultInventory: IDetailInventoryItem = {
     itemName: '',
     lastChangedDate: undefined,
     location: undefined,
+    room: '',
     pictures: [],
     pieces: 1,
     piecesDropped: 0,
